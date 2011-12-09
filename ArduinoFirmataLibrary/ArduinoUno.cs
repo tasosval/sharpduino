@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Tasos Valsamidis
+﻿// Copyright (c) 2009 Tasos Valsamidis
 // Contributions by Noriaki Mitsunaga
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -21,30 +21,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
+using System.IO.Ports;
 
 namespace ArduinoFirmataLibrary
 {
-    public class ArduinoException : Exception
+    public sealed class ArduinoUno : Arduino
     {
-        private readonly ArduinoErrorCodes error;
-
-        public ArduinoException(ArduinoErrorCodes error)
+        public ArduinoUno(string portName, int baudRate, Parity parity, int databits, StopBits stopBits) : base(portName, baudRate, parity, databits, stopBits)
         {
-            this.error = error;
         }
 
-        public ArduinoErrorCodes Error
+        public ArduinoUno(string portName) : base(portName)
         {
-            get { return error; }
         }
-    }
 
-    public enum ArduinoErrorCodes
-    {
-        CURRENTSTATEDOESNOTPERMITOPERATION = -1,
-        UNKNOWNERROR = -2,
-        INVALIDPIN = -3,
-        INVALIDVALUE = -4
+        public int AnalogRead(ArduinoUnoAnalogPins pin)
+        {
+            return this.AnalogRead((int) pin);
+        }
+        
+        public void AnalogWrite(ArduinoUnoPWMPins pin, int value)
+        {
+            this.AnalogWrite((int)pin,value);
+        }
+
+        public int DigitalRead(ArduinoUnoDigitalPins pin)
+        {
+            return DigitalRead((int) pin);
+        }
+
+        public void DigitalWrite(ArduinoUnoDigitalPins pin,int value)
+        {
+            DigitalWrite((int)pin,value);
+        }
     }
 }

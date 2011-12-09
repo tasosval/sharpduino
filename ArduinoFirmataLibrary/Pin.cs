@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Tasos Valsamidis
+﻿// Copyright (c) 2009 Tasos Valsamidis
 // Contributions by Noriaki Mitsunaga
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -20,31 +20,35 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-
-using System;
+using System.Collections.Generic;
 
 namespace ArduinoFirmataLibrary
 {
-    public class ArduinoException : Exception
+    public enum PinModes
     {
-        private readonly ArduinoErrorCodes error;
-
-        public ArduinoException(ArduinoErrorCodes error)
-        {
-            this.error = error;
-        }
-
-        public ArduinoErrorCodes Error
-        {
-            get { return error; }
-        }
+        Input = 0x00,
+        Output = 0x01,
+        Analog = 0x02,
+        PWM = 0x03,
+        Servo = 0x04,
+        Shift = 0x05,
+        I2C = 0x06,
     }
 
-    public enum ArduinoErrorCodes
+    public class Pin
     {
-        CURRENTSTATEDOESNOTPERMITOPERATION = -1,
-        UNKNOWNERROR = -2,
-        INVALIDPIN = -3,
-        INVALIDVALUE = -4
+        public int Input { get; set; }
+        public int Output { get; set; }
+        public int AnalogPin {get;set; }                            // Corresponding pin number of analog input
+        public PinModes CurrentMode { get; set; }
+        public List<PinModes> SupportedModes { get; private set; }
+        public Dictionary<PinModes, int> SupportedResolution { get; private set; }
+
+        public Pin()
+        {
+            AnalogPin = -1;
+            SupportedModes = new List<PinModes>();
+            SupportedResolution = new Dictionary<PinModes, int>();
+        }
     }
 }
