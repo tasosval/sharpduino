@@ -45,6 +45,7 @@ namespace ArduinoFirmataLibrary
         CURRENTSTATEDOESNOTPERMITOPERATION = -1,
         UNKNOWNERROR = -2,
         INVALIDPIN = -3,
-        INVALIDVALUE = -4
+        INVALIDVALUE = -4,
+        INVALIDPINSTATE = -5
     }
 }
