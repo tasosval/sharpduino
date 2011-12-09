@@ -1,92 +1,130 @@
-﻿//Copyright (c) 2009 Tasos Valsamidis
+﻿// Copyright (c) 2009 Tasos Valsamidis
+// Contributions by Noriaki Mitsunaga
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
 //
-//Permission is hereby granted, free of charge, to any person
-//obtaining a copy of this software and associated documentation
-//files (the "Software"), to deal in the Software without
-//restriction, including without limitation the rights to use,
-//copy, modify, merge, publish, distribute, sublicense, and/or sell
-//copies of the Software, and to permit persons to whom the
-//Software is furnished to do so, subject to the following
-//conditions:
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
 //
-//The above copyright notice and this permission notice shall be
-//included in all copies or substantial portions of the Software.
-//
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-//OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-//NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-//HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-//WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-//OTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
-using System.Linq;
-using System.Threading;
+using System.Text;
 
 namespace ArduinoFirmataLibrary
 {
-    public delegate void NewAnalogValueIsAvailableHandler(AnalogPortMessage newValue);
+    public delegate void NewAnalogValueIsAvailableHandler(AnalogPinMessage newValue);
     public delegate void NewDigitalValueIsAvailableHandler(DigitalPortMessage newValue);
 
-    public class Arduino : IDisposable
+    public abstract class Arduino : IDisposable
     {
-        #region Constants
-        // This is a bit mask to get the pin value from a byte
-        private const byte PINMASK = 0x0F;
-        // This is a bit mask to get the command bits from a byte
-        private const int COMMANDMASK = 0xF0;
-        
-        // This is the enable report command to be used with the toggle analog and toggle digital commands
-        private const byte ENABLEREPORT = 0x01;
-        // This is the disable report command to be used with the toggle analog and toggle digital commands
-        private const byte DISABLEREPORT = 0x00;
-        
-        // These are the valid pwm pins for the arduino duemilanove
-        private static readonly byte[] VALIDPWMPINS = new byte[] { 3, 5, 6, 9, 10, 11 };
-        #endregion
-
-
         #region Private Fields
-        // The serial port that will be used for all communication
+        /// <summary>
+        /// The serial port that will be used for all communication
+        /// </summary>
         private SerialPort serialPort;
 
-        // This array holds the pin mapping for analog reporting
-        // This can only be changed in the standby state (for now)
-        private readonly bool[] analogReportState = new bool[6];
-
-        // This array holds the pin mapping for digital reporting
-        // This can only be changed in the standby state (for now)
-        private readonly bool[] digitalReportState = new bool[3];
-
-        // The current state of the Arduino object (used in such a way 
-        // that we don't do anything that wasn't predicted)
-        private ArduinoLibraryStates currentState;
-        #endregion
-
         /// <summary>
-        /// The current state of the Arduino object
+        /// The possible states of the Firmata protocol
         /// </summary>
-        public ArduinoLibraryStates CurrentState
+        private enum FirmataState
         {
-            get { return currentState; }
+            NONE = 0,
+            WAIT_ONE_PARAM_CMD_1 = 1,
+            WAIT_TWO_PARAM_CMD_1 = 2,
+            WAIT_TWO_PARAM_CMD_2 = 3,
+            WAIT_SYSEX_DATA = 4
         }
 
         /// <summary>
+        /// The current state on the Firmata protocol
+        /// </summary>
+        private FirmataState firmataState = FirmataState.NONE;
+        
+        private int firmataMessage = 0;
+        private byte[] msgBuf = new byte[Firmata.MAX_DATA_BYTES];
+        private int msgLength = 0;
+
+        /// <summary>
+        /// This array holds the pin mapping for analog reporting. This can only be changed in the standby state (for now)
+        /// </summary>
+        private readonly bool[] analogReportState = new bool[Firmata.MAX_ANALOG_PINS];
+
+        /// <summary>
+        /// This array holds the pin mapping for digital reporting. This can only be changed in the standby state (for now)
+        /// </summary>
+        private readonly bool[] digitalReportState = new bool[Firmata.MAX_DIGITAL_PORTS];
+
+
+        private int[] analogs = new int[Firmata.MAX_ANALOG_PINS];
+        private int[] port_inputs = new int[Firmata.MAX_DIGITAL_PORTS];
+        private int[] port_outputs = new int[Firmata.MAX_DIGITAL_PORTS];
+
+        private Int64 rxbytes = 0;
+        private Int64 txbytes = 0;
+
+        //////////////////////////////////////////////////////
+        //                     Flags                       ///
+        //////////////////////////////////////////////////////
+        private bool firmwareVersionResponded = false;
+        private bool capabilityResponded = false;
+        private bool pinStateResponded = false;
+        private bool analogMappingResponded = false;
+        private bool protocolVersionResponded = false;
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// The current protocol version running at the device
+        /// </summary>
+        public string ProtocolVersion { get; private set; }
+
+        /// <summary>
+        /// The current firmware version running at the device
+        /// </summary>
+        public string FirmwareVersion { get; private set; }
+
+        /// <summary>
+        /// The current firmware name running at the device
+        /// </summary>
+        public string FirmwareName { get; private set; }
+
+        /// <summary>
+        /// The pins list of the device
+        /// </summary>
+        public IList<Pin> Pins { get; private set; }
+        #endregion
+
+        /// <summary>
         /// This is an event that fires whenever a new analog value has come through the
-        /// serial port. It only fires in the continuous operation state
+        /// serial port.
         /// </summary>
         public event NewAnalogValueIsAvailableHandler NewAnalogValueIsAvailable;
 
         /// <summary>
         /// This is an event that fires whenever a new digital value has come through the
-        /// serial port. It only fires in the continuous operation state
+        /// serial port. 
         /// </summary>
         public event NewDigitalValueIsAvailableHandler NewDigitalValueIsAvailable;
 
         #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the Arduino class giving information about the
         /// connection parameters, as they are set up in the arduino sketch. The arduino
@@ -97,519 +135,580 @@ namespace ArduinoFirmataLibrary
         /// <param name="parity">One of the parity values, usually none</param>
         /// <param name="databits">The number of bits, usually 8</param>
         /// <param name="stopBits">The number of stopbits, usually 1</param>
-        public Arduino(string portName, int baudRate, Parity parity, int databits, StopBits stopBits)
+        protected Arduino(string portName, int baudRate, Parity parity, int databits, StopBits stopBits)
         {
-            serialPort = new SerialPort(portName, baudRate, parity, databits, stopBits);
-            
-            // Set this threshold because all the messages we receive have 3 bytes
-            serialPort.ReceivedBytesThreshold = 3;
+            Pins = new List<Pin>();
 
-            // Toggle the current state to standby
-            currentState = ArduinoLibraryStates.StandBy;
+            Pins = new Pin[Firmata.MAX_DIGITAL_PINS];
+            for (int i=0; i<Pins.Count; i++)
+                Pins[i] = new Pin();
 
-            // Open the port
-            serialPort.Open();
+            try
+            {
+                serialPort = new SerialPort(portName, baudRate, parity, databits, stopBits);
+                // Open the port
+                serialPort.Open();
+            }
+            catch (IOException ioException)
+            {
+                Console.WriteLine(ioException);
+                Dispose();
+                return;
+            }
+
+            serialPort.DataReceived += SerialPortDataReceived;
         }
 
         /// <summary>
         /// Initializes a new instance of the Arduino class giving information about the
         /// port name, all the other connection parameters get their default values.
         /// The arduino must be running the Firmata program. 
+        /// Default Values: baudrate=57600, parity=none, databits=8, stopbits=1
         /// </summary>
         /// <param name="portName">The name of the assigned COM port</param>
-        public Arduino(string portName) : this(portName, 115200, Parity.None, 8, StopBits.One) { }
+        protected Arduino(string portName) : this(portName, 57600, Parity.None, 8, StopBits.One) { }
 
         #endregion
 
+
         /// <summary>
-        /// Toggle the report state for the pin specified. This method works only in the standby state
+        /// Initialize the Arduino
+        /// </summary>
+        /// <returns></returns>
+        public int Init()
+        {
+            // Stop previous 
+            StopReceivingReports();
+            for (int i = 0; i < 100 && !protocolVersionResponded; i++)
+            {
+                MQueryProtocolVersion();
+                System.Threading.Thread.Sleep(100);
+            }
+            if (!protocolVersionResponded)
+                return -1;
+            MQueryFirmwareVersion();
+            MQueryCapability();
+            MQueryAnalogMapping();
+
+            for (int i = 0; i < 200 && !(firmwareVersionResponded && capabilityResponded && analogMappingResponded); i++)
+            {
+                System.Threading.Thread.Sleep(10);
+            }
+
+            for (int i = 0; i < Firmata.MAX_DIGITAL_PINS; i++)
+            {
+                MQueryPinState(i);
+                for (int j = 0; j < 200 && !pinStateResponded; j++)
+                {
+                    System.Threading.Thread.Sleep(1);
+                }
+            }
+
+            for (int i = 0; i < Firmata.MAX_DIGITAL_PORTS; i++)
+                SetDigitalReportStateForPort((byte)i, true);
+            for (int i = 0; i < Firmata.MAX_ANALOG_PINS; i++)
+                SetAnalogReportStateForPin(i,true);
+            UpdateReportsToReceive();
+
+            return 0;
+        }
+
+
+        /// <summary>
+        /// Set the report state for the pin specified. This method works only in the standby state
         /// </summary>
         /// <param name="pin">The pin whose analog report state we want to change. Valid pin are from
         /// 0 to 5</param>
         /// <param name="newState">The new state</param>
-        public void ToggleAnalogReportStateForPin(int pin, bool newState)
+        public void SetAnalogReportStateForPin(int pin, bool newState)
         {
-            // If the pin is not an analog pin
-            if (pin < 0 || pin > 5)
+            // Check if the pin is valid
+            if (pin < 0 || pin >= Firmata.MAX_ANALOG_PINS)
                 throw new ArduinoException(ArduinoErrorCodes.INVALIDPIN);
-
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
 
             analogReportState[pin] = newState;
         }
 
         /// <summary>
-        /// Toggle the report state for the pin specified. This method works only in the standby state
+        /// Set the report state for the pin specified. This method works only in the standby state
         /// </summary>
         /// <param name="port">The port whose digital report state we want to change. Valid ports are from
         /// 0 to 2</param>
         /// <param name="newState">The new state</param>
-        public void ToggleDigitalReportStateForPort(byte port, bool newState)
+        public void SetDigitalReportStateForPort(byte port, bool newState)
         {
-            // If the pin is not an analog pin
-            if (port < 0 || port > 2)
+            // Check if the pin is valid
+            if (port < 0 || port >= Firmata.MAX_DIGITAL_PORTS)
                 throw new ArduinoException(ArduinoErrorCodes.INVALIDVALUE);
-
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
 
             digitalReportState[port] = newState;
         }
 
-        /// <summary>
-        /// Start the process of receiving messages. This means that all the analog
-        /// and digital ports that have been assigned to report will be toggled and
-        /// a handler will be setup for all the incoming data. Subscribe to the NewAnalogValueIsAvailable
-        /// event to get this data
-        /// </summary>
-        public void StartReceivingReports()
+        public void UpdateReportsToReceive()
         {
-            try
-            {
                 for (int i = 0; i < analogReportState.Length; i++)
                 {
-                    serialPort.Write(GetAnalogReportCommandForPin(analogReportState[i], i), 0, 2);
+                    MReportAnalogPin(i, analogReportState[i]);
                 }
-
 
                 for (int i = 0; i < digitalReportState.Length; i++)
                 {
-                    serialPort.Write(GetDigitalReportCommandForPort(digitalReportState[i],i),0,2);
+                    MReportDigitalPort(i, digitalReportState[i]);
                 }
-
-
-                currentState = ArduinoLibraryStates.ContinuousOperation;
-                serialPort.DataReceived += port_DataReceived;
-            }
-            catch(Exception)
-            {
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
         }
 
-        private void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            byte[] buffer = new byte[3];
-
-            serialPort.Read(buffer, 0, 3);
-            // We have an analog report 
-            if ((buffer[0] & COMMANDMASK) == FirmataCommands.ANALOGMESSAGE )
-            {
-                int tempPin = (buffer[0] & PINMASK);
-                int tempValue = GetValueFromBytes(buffer[2], buffer[1]);
-
-                // If the value is out of the expected range then there is a problem
-                if (tempValue <= 1023 && tempValue >= 0)
-                {
-                    // Check if we have someone who has subscribed to the newanalogvalueisavailable event
-                    if (NewAnalogValueIsAvailable != null)
-                    {
-                        // Sent the newly read value for the current pin to the subscribers
-                        NewAnalogValueIsAvailable(
-                            new AnalogPortMessage
-                                {
-                                    AnalogValue = ((float)tempValue) / 1023 * 5, 
-                                    Pin = tempPin
-                                });
-                    }
-                }
-            }
-            else if ((buffer[0] & COMMANDMASK) == FirmataCommands.DIGITALMESSAGE)
-            {
-                int port = (buffer[0] & PINMASK);
-                int tempValue = GetValueFromBytes(buffer[2], buffer[1]);
-                bool[] pins = GetPinValuesFromPort((byte) tempValue);
-
-                // Check if we have someone who has subscribed to the newdigitalvalueisavailable event
-                if (NewDigitalValueIsAvailable != null)
-                {
-                    // Sent the newly read value for the current port to the subscribers
-                    NewDigitalValueIsAvailable(
-                        new DigitalPortMessage
-                            {
-                                Pins = pins,
-                                Port = port
-                        });
-                }
-            }
-        }
-
-        /// <summary>
-        /// Toggle all reporting off
-        /// </summary>
         public void StopReceivingReports()
         {
-            try
-            {
-                serialPort.DataReceived -= port_DataReceived;
-
-                // Close all reports
                 for (int i = 0; i < analogReportState.Length; i++)
                 {
-                    serialPort.Write(GetAnalogReportCommandForPin(false, i), 0, 2);
+                    MReportAnalogPin(i, false);
                 }
 
                 for (int i = 0; i < digitalReportState.Length; i++)
                 {
-                    serialPort.Write(GetDigitalReportCommandForPort(false, i), 0, 2);
+                    MReportDigitalPort(i, false);
                 }
-            }
-            catch (Exception)
-            {
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
-            finally
-            {
-                // Discard the in buffer so we don't have leftovers when we reopen the port
-                serialPort.DiscardInBuffer();
-                
-                //Return to the standby state
-                currentState = ArduinoLibraryStates.StandBy;
-            }
         }
 
-        #region OneShot Operations
+        #region Arduino IDE like functions
 
-        /// <summary>
-        /// Read the voltage on the analog pin that is specified
-        /// </summary>
-        /// <param name="pin">The analog input pin. Valid values are 0-5</param>
-        /// <returns>The analog reading in volts. Error number if there was an error</returns>
-        public float ReadAnalog(byte pin)
+        protected int AnalogRead(int pin)
         {
-            // If the pin is not an analog pin
-            if ((pin < 0 || pin > 5) )
-                throw new ArduinoException(ArduinoErrorCodes.INVALIDPIN);
+            if (pin < 0 || pin >= Firmata.MAX_ANALOG_PINS)
+                return -1;
 
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
-
-            // Toggle the current state
-            currentState = ArduinoLibraryStates.OneShotOperation;
-
-            try
-            {
-                // Write the command to enable the analog report for the pin we want
-                serialPort.Write(GetAnalogReportCommandForPin(true,pin), 0, 2);
-                Thread.Sleep(25);
-                byte[] buffer = new byte[3];
-
-                while (true)
-                {
-                    serialPort.Read(buffer, 0, 3);
-                    // We have an analog report and we have the correct pin
-                    if ((buffer[0] & COMMANDMASK) == FirmataCommands.ANALOGMESSAGE &&
-                        (buffer[0] & PINMASK) == pin)
-                    {
-                        // Write the command to disable the analog report for the pin we want
-                        serialPort.Write(GetAnalogReportCommandForPin(false, pin), 0, 2);
-                        // Discard any other data left in the buffer
-                        serialPort.DiscardInBuffer();
-
-                        int tempValue = GetValueFromBytes(buffer[2], buffer[1]);
-
-                        // If the value is out of the expected range then there is a problem
-                        if (tempValue > 1023 || tempValue < 0)
-                        {
-                            throw new ArduinoException(ArduinoErrorCodes.INVALIDVALUE);
-                        }
-
-                        // Normalize the value to volts
-                        return ((float)tempValue) / 1023 * 5;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
-            finally
-            {
-                // Reset the current state
-                currentState = ArduinoLibraryStates.StandBy;
-            }
+            return analogs[pin];
         }
 
-        /// <summary>
-        /// Write an analog value that should be set to the PWM outputs of arduino
-        /// </summary>
-        /// <param name="pin">The analog output pin. Valid pins are 3,5,6,9,10,11 for newer boards. 
-        /// 9,10,11 for older boards</param>
-        /// <param name="outputValue">The PWM duty cycle in percentage.</param>
-        /// <returns>Error number if there was an error. 0 otherwise</returns>
-        public void SetPWMOutput(byte pin, int outputValue)
+        protected void AnalogWrite(int pin, int value)
         {
+            if (pin < 0 || pin >= Firmata.MAX_ANALOG_PINS)
+                return;
+
             // Check if we have a percentile value
-            if (outputValue < 0 || outputValue > 100)
-                throw new ArduinoException(ArduinoErrorCodes.INVALIDVALUE);
+            if (value < 0)
+                value = 0;
+            else if (value > 0x3fff)
+                value = 0x3fff;
 
-            // Check if we have a valid pin number
-            if (!VALIDPWMPINS.Contains(pin))
-                throw new ArduinoException(ArduinoErrorCodes.INVALIDPIN);
-
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
-
-
-            // Toggle the current state
-            currentState = ArduinoLibraryStates.OneShotOperation;
-
-            // Convert this percentile value to something that arduino will understand
-            byte pwmValue = (byte)(outputValue * 255 / 100);
-
-
-            // No need to write the command that sets this pin to analog output.
-            // it is already implemented at the standard firmata program
-
-            try
+            // Check if we are already in pwm mode
+            if (Pins[pin].CurrentMode != PinModes.PWM)
             {
-               serialPort.Write(GetAnalogOutputCommandForPin(pwmValue,pin), 0, 3);
+                // If not try to see if the pin supports pwm
+                if (!Pins[pin].SupportedModes.Contains(PinModes.PWM))
+                    return;
+
+                MSetPinMode(pin, PinModes.PWM);
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
-            finally
-            {
-                // Reset the current state to standby
-                currentState = ArduinoLibraryStates.StandBy;
-            }
+
+            // Set the value
+            MAnalogIOMessage(pin, value);
+            Pins[pin].Output = value;
         }
 
-        /// <summary>
-        /// Change the digital output for a port of arduino's ATMEGA chip.
-        /// The pins that we want to change must have been put into output mode
-        /// </summary>
-        /// <param name="port">The port that corresponds to the port of the ATMEGA</param>
-        /// <param name="pins">A byte whose individual bits represent the 
-        /// state of the corresponding pin</param>
-        /// <returns>Error number if there was an error. 0 otherwise</returns>
-        public void SetDigitalOutput(byte port, byte pins)
+        protected int DigitalRead(int pin)
         {
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
-
-
-            // Toggle the current state
-            currentState = ArduinoLibraryStates.OneShotOperation;
-
-            // TODO : Maybe we need to write the command that sets this pin to digital output.
-
-            try
-            {
-                serialPort.Write(GetDigitalOutputCommandForPort(port, pins), 0, 3);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
-            finally
-            {
-                // Reset the current state to standby
-                currentState = ArduinoLibraryStates.StandBy;
-            }
+            return Pins[pin].Input;
         }
-        
-        public byte ReadDigital(byte port)
+
+        protected void DigitalWrite(int pin, int value)
         {
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
+            byte port = (byte)(pin/8);
 
-            // Toggle the current state
-            currentState = ArduinoLibraryStates.OneShotOperation;
-
-            try
-            {
-                // Write the command to enable the analog report for the pin we want
-                serialPort.Write(GetDigitalReportCommandForPort(true, port), 0, 2);
-                Thread.Sleep(25);
-                byte[] buffer = new byte[3];
-
-                while (true)
-                {
-                    // BUG : find why there is no answer
-                    serialPort.Read(buffer, 0, 3);
-
-                    // We have an analog report and we have the correct pin
-                    if ((buffer[0] & COMMANDMASK) == FirmataCommands.DIGITALMESSAGE && 
-                        (buffer[0] & PINMASK) == port)
-                    {
-                        // Write the command to disable the analog report for the pin we want
-                        serialPort.Write(GetDigitalReportCommandForPort(false, port), 0, 2);
-
-                        return (byte)GetValueFromBytes(buffer[2], buffer[1]);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
-            finally
-            {
-                // Reset the current state
-                currentState = ArduinoLibraryStates.StandBy;
-            }
+            if (pin < 0 || pin >= Firmata.MAX_DIGITAL_PINS)
+                return;
+            DigitalWrite_((byte)pin, value);
+            DigitalWritePort(port, (byte)port_outputs[port]);
         }
-        
-        public void TogglePinState(byte pin, byte mode)
+
+        private void DigitalWrite_(int pin, int value)
         {
-            // The protocol allows 127 pins
-            if ( pin > 127 )
-                throw new ArduinoException(ArduinoErrorCodes.INVALIDPIN);
+            // Do nothing if we have wrong pin number
+            if (pin<0 || pin >= Firmata.MAX_DIGITAL_PINS)
+                return; 
 
-            // If we are not in the standby state
-            if (CurrentState != ArduinoLibraryStates.StandBy)
-                throw new ArduinoException(ArduinoErrorCodes.CURRENTSTATEDOESNOTPERMITOPERATION);
+            // Get the port and the pin position in this port
+            int port = pin / 8;
+            int pinInPort = pin % 8;
 
-            // Toggle the current state
-            currentState = ArduinoLibraryStates.OneShotOperation;
+            Pins[pin].Output = value == 0 ? 0 : 1;
+            if (value == 0)
+                port_outputs[port] &=  ~(1 << pinInPort); 
+            else
+                port_outputs[port] |= 1 << pinInPort;
+        }
 
-            try
+        private void DigitalWritePort(int port, byte pins)
+        {
+            if (port < 0 || port >= Firmata.MAX_DIGITAL_PORTS)
+                return;
+            MDigitalIOMessage((byte)port, pins);
+        }
+
+        public void SetPinMode(int pin, PinModes mode)
+        {
+            MSetPinMode(pin, mode);
+        }
+
+        public void ServoAttach(int pin, int min, int max, int ang)
+        {
+            if (pin < 0 || pin >= Firmata.MAX_DIGITAL_PINS)
+                return;
+            if (!Pins[pin].SupportedModes.Contains(PinModes.Servo))
+                return;
+            
+            MServoConfig(pin, min, max, ang);
+            MSetPinMode(pin, PinModes.Servo);
+            Pins[pin].CurrentMode = PinModes.Servo;
+        }
+
+        public void ServoAttach(int pin)
+        { 
+            ServoAttach(pin, 544, 2400, 90);
+        }
+
+        public void ServoWrite(int pin, int Value)
+        {
+            if (Pins[pin].CurrentMode == PinModes.Servo)
             {
-                // Write the command to change the pin mode
-                serialPort.Write(new byte[]{FirmataCommands.SETPINMODE, pin, mode}, 0, 2);
-                Thread.Sleep(25);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
-            }
-            finally
-            {
-                // Reset the current state
-                currentState = ArduinoLibraryStates.StandBy;
+                MAnalogIOMessage((byte)pin, Value);
+                Pins[pin].Output = Value;
             }
         }
         #endregion 
 
-        #region Helper Methods
+        #region Functions to handle serial port
+        private void SerialPortDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            lock (serialPort)
+            {
 
-        /// <summary>
-        /// Get the command for analog output
-        /// Take the 4 MSB from the command type and the 4 LSB from the pin and create a command
-        /// Also split the int value to a two-byte representation
-        /// </summary>
-        private static byte[] GetAnalogOutputCommandForPin(int value, int pin)
+                while (serialPort.IsOpen && serialPort.BytesToRead > 0)
+                {
+                    int c = serialPort.ReadByte();
+                    rxbytes++;
+
+                    // Console.WriteLine(firmataState);
+                    // Console.WriteLine(c);
+                    if (firmataState == FirmataState.WAIT_SYSEX_DATA &&
+                        (c != Firmata.SYSEX_END) && (c & 0x80) != 0)
+                    {
+                        firmataState = FirmataState.NONE;
+                    }
+                    switch (firmataState)
+                    {
+                        case FirmataState.NONE:
+                            if ((c & 0x80) == 0)    // Ignore data byte in this state
+                                break;
+                            firmataMessage = c;
+                            if ((firmataMessage & 0xf0) == Firmata.ANALOG_MESSAGE ||
+                                (firmataMessage & 0xf0) == Firmata.DIGITAL_MESSAGE ||
+                                firmataMessage == Firmata.PROTOCOL_VERSION)
+                                firmataState = FirmataState.WAIT_TWO_PARAM_CMD_1;
+                            else if (firmataMessage == Firmata.SYSEX_START)
+                            {
+                                firmataState = FirmataState.WAIT_SYSEX_DATA;
+                                msgLength = 0;
+                            }
+                            break;
+                        case FirmataState.WAIT_ONE_PARAM_CMD_1:
+                            if ((c & 0x80) != 0)    // Got command -> error
+                            {
+                                firmataState = FirmataState.NONE;
+                                break;
+                            }
+                            // Do something when we recieve one parameter message
+
+                            firmataState = FirmataState.NONE;
+                            break;
+                        case FirmataState.WAIT_TWO_PARAM_CMD_1:
+                            if ((c & 0x80) != 0)    // Got command -> error
+                            {
+                                firmataState = FirmataState.NONE;
+                                break;
+                            }
+                            msgBuf[0] = (byte)c;
+                            firmataState = FirmataState.WAIT_TWO_PARAM_CMD_2;
+                            break;
+                        case FirmataState.WAIT_TWO_PARAM_CMD_2:
+                            if ((c & 0x80) != 0)    // Got command -> error
+                            {
+                                firmataState = FirmataState.NONE;
+                                break;
+                            }
+                            msgBuf[1] = (byte)c;
+
+                            if ((firmataMessage & 0xf0) == Firmata.ANALOG_MESSAGE)
+                            {
+                                int tempPin = (firmataMessage & 0xf);
+                                int tempValue = BitHelper.Sevens2Fourteen(msgBuf[0], msgBuf[1]);
+
+                                analogs[tempPin] = tempValue;
+
+                                // Check if we have someone who has subscribed to the newanalogvalueisavailable event
+                                if (NewAnalogValueIsAvailable != null)
+                                {
+                                    // Sent the newly read value for the current pin to the subscribers
+                                    NewAnalogValueIsAvailable(
+                                        new AnalogPinMessage
+                                        {
+                                            Value = tempValue,
+                                            Pin = tempPin
+                                        });
+                                }
+                            }
+                            else if ((firmataMessage & 0xf0) == Firmata.DIGITAL_MESSAGE)
+                            {
+                                int port = (firmataMessage & 0xf);
+                                int tempValue = BitHelper.Sevens2Fourteen(msgBuf[0], msgBuf[1]);
+                                int[] pins_ = BitHelper.PortVal2PinVals((byte)tempValue);
+
+                                port_inputs[port] = tempValue;
+                                for (int i = 0; i < 8; i++)
+                                {
+                                    Pins[port * 8 + i].Input = (int)((tempValue >> i) & 1);
+                                }
+
+                                // Check if we have someone who has subscribed to the newdigitalvalueisavailable event
+                                if (NewDigitalValueIsAvailable != null)
+                                {
+                                    // Sent the newly read value for the current port to the subscribers
+                                    NewDigitalValueIsAvailable(
+                                        new DigitalPortMessage
+                                        {
+                                            Port = port,
+                                            Pins = pins_
+                                        });
+                                }
+                            }
+                            else if (firmataMessage == Firmata.PROTOCOL_VERSION)
+                            {
+                                ProtocolVersion = string.Format("{0}.{1}", msgBuf[0], msgBuf[1]);
+                                protocolVersionResponded = true;
+                            }
+                            firmataState = FirmataState.NONE;
+                            break;
+                        case FirmataState.WAIT_SYSEX_DATA:
+                            if (c != Firmata.SYSEX_END)
+                            {
+                                if (msgLength >= Firmata.MAX_DATA_BYTES)
+                                {
+                                    firmataState = FirmataState.NONE;
+                                    break;
+                                }
+                                msgBuf[msgLength] = (byte)c;
+                                msgLength++;
+                            }
+                            else // c == FirmataCommands.SYSEX_END
+                            {
+                                if (msgBuf[0] == Firmata.SYSEX_QUERY_FIRMWARE && msgLength > 1)
+                                {
+                                    FirmwareVersion = string.Format("{0}.{1}", msgBuf[1], msgBuf[2]);
+                                    var firm_name = new StringBuilder();
+                                    for (int i = 3; i < msgLength; i += 2)
+                                    {
+                                        int s = BitHelper.Sevens2Fourteen(msgBuf[i], msgBuf[i + 1]);
+                                        firm_name.Append((char)s);
+                                    }
+                                    FirmwareName = firm_name.ToString();
+                                    firmwareVersionResponded = true;
+                                }
+                                else if (msgBuf[0] == (byte)Firmata.SYSEX_CAPBILITY_RESPONSE)
+                                {
+                                    int p = 0;
+
+                                    for (int i = 1; i < msgLength; i++, p++)
+                                    {
+                                        while (msgBuf[i] != 127)
+                                        {
+                                            var mode = (PinModes) msgBuf[i++];
+                                            Pins[p].SupportedModes.Add(mode);
+                                            Pins[p].SupportedResolution.Add(mode, msgBuf[i++]);
+                                        }
+                                    }
+                                    capabilityResponded = true;
+                                }
+                                else if (msgBuf[0] == (byte)Firmata.SYSEX_ANALOG_MAPPING_RESPONSE)
+                                {
+                                    for (int i = 1; i < msgLength; i++)
+                                    {
+                                        if (msgBuf[i] < 127)
+                                            Pins[i - 1].AnalogPin = msgBuf[i];
+                                        else
+                                            Pins[i - 1].AnalogPin = -1;
+                                    }
+                                    analogMappingResponded = true;
+                                }
+                                else if (msgBuf[0] == (byte)Firmata.SYSEX_PIN_STATE_RESPONSE)
+                                {
+                                    int pno = msgBuf[1];
+                                    Pins[pno].CurrentMode = (PinModes)msgBuf[2];
+                                    // System.Diagnostics.Debug.WriteLine(pno+": "+Pins[pno].CurrentMode);
+                                    int tmp = 0;
+                                    for (int i = 3; i < msgLength; i++)
+                                        tmp |= (msgBuf[i] << (i - 3) * 7);
+                                    Pins[pno].Output = tmp;
+                                    if (Pins[pno].CurrentMode == PinModes.Output)
+                                        DigitalWrite_(pno, Pins[pno].Output);
+                                    pinStateResponded = true;
+                                }
+                                firmataState = FirmataState.NONE;
+                            }
+
+                            break;
+                        default:
+                            firmataState = FirmataState.NONE;
+                            break;
+
+                    }
+                }
+            }
+        }
+
+        private void SerialWrite(byte[] buf, int sz)
+        {
+            if (serialPort == null || !serialPort.IsOpen)
+                return;
+
+            try
+            {
+                // Write the command to change the pin mode
+                serialPort.Write(buf, 0, sz);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw new ArduinoException(ArduinoErrorCodes.UNKNOWNERROR);
+            }
+            finally
+            {
+                txbytes += sz;
+            }
+        }
+        #endregion
+
+        #region Functions to send Firmata messages
+        protected void MAnalogIOMessage(int pin, int value)
         {
             // Translate the value to the format wanted by the firmata library
             byte LSB, MSB;
-            GetBytesFromValue(value, out MSB, out LSB);
+            BitHelper.Fourteen2Sevens(value, out LSB, out MSB);
 
             // We take the 4 MSB from the command type and the 4 LSB from the pin
-            byte writeCommand = (byte)(FirmataCommands.ANALOGMESSAGE | pin);
+            byte writeCommand = (byte)(Firmata.ANALOG_MESSAGE | pin);
 
             // Write the command to enable the analog output for the pin we want
-            return new byte[] { writeCommand, LSB, MSB };
+            SerialWrite(new byte[] { writeCommand, LSB, MSB }, 3);
         }
 
-        /// <summary>
-        /// Get the command for analog report toggle
-        /// Take the 4 MSB from the command type and the 4 LSB from the pin and create a command
-        /// Also put the report enable or disable flag in the command
-        /// </summary>
-        private static byte[] GetAnalogReportCommandForPin(bool shouldEnable, int pin)
-        {
-            byte readCommand = (byte)(FirmataCommands.TOGGLEANALOGREPORT | pin);
-            if (shouldEnable) 
-                return new byte[] {readCommand, ENABLEREPORT};
-            else 
-                return new byte[] {readCommand, DISABLEREPORT};
-        }
-
-        /// <summary>
-        /// Get the command for digital output
-        /// Take the 4 MSB from the command type and the 4 LSB from the pin and create a command
-        /// Also split the byte value to a two-byte representation
-        /// </summary>
-        private static byte[] GetDigitalOutputCommandForPort(byte port, byte portValue)
+        protected void MDigitalIOMessage(byte port, byte portValue)
         {
             // Translate the value to the format wanted by the firmata library
             byte LSB, MSB;
-            GetBytesFromValue(portValue, out MSB, out LSB);
+            BitHelper.Fourteen2Sevens(portValue, out LSB, out MSB);
 
             // We take the 4 MSB from the command type and the 4 LSB from the pin
-            byte writeCommand = (byte)(FirmataCommands.DIGITALMESSAGE | port);
+            byte writeCommand = (byte)(Firmata.DIGITAL_MESSAGE | port);
 
             // Write the command to enable the analog output for the pin we want
-            return new byte[] { writeCommand, LSB, MSB };
+            SerialWrite(new byte[] { writeCommand, LSB, MSB }, 3);
         }
 
-        /// <summary>
-        /// Get the command for digital report toggle
-        /// Take the 4 MSB from the command type and the 4 LSB from the pin and create a command
-        /// Also put the report enable or disable flag in the command
-        /// </summary>
-        private static byte[] GetDigitalReportCommandForPort(bool shouldEnable, int port)
+        protected void MQueryAnalogMapping()
         {
-            byte readCommand = (byte)(FirmataCommands.TOGGLEDIGITALREPORT | port);
+            // Send a query to find out the analog mappings
+            SerialWrite(new byte[] { Firmata.SYSEX_START, Firmata.SYSEX_ANALOG_MAPPING_QUERY, Firmata.SYSEX_END }, 3);
+            analogMappingResponded = false;
+        }
+
+        protected void MQueryCapability()
+        {
+            SerialWrite(new byte[] { Firmata.SYSEX_START, Firmata.SYSEX_CAPBILITY_QUERY, Firmata.SYSEX_END }, 3);
+            capabilityResponded = false;
+        }
+
+        protected void MQueryFirmwareVersion()
+        {
+            SerialWrite(new byte[] { Firmata.SYSEX_START, Firmata.SYSEX_QUERY_FIRMWARE, Firmata.SYSEX_END }, 3);
+            firmwareVersionResponded = false;
+        }
+
+        protected void MQueryPinState(int i)
+        {
+            if (i < 0 || i >= Firmata.MAX_DIGITAL_PINS)
+                return;
+            SerialWrite(new byte[] { Firmata.SYSEX_START, Firmata.SYSEX_PIN_STATE_QUERY, (byte)i, Firmata.SYSEX_END }, 4);
+            pinStateResponded = false;
+        }
+
+        protected void MQueryProtocolVersion()
+        {
+            SerialWrite(new byte[] { Firmata.PROTOCOL_VERSION }, 1);
+            protocolVersionResponded = false;
+        }
+
+        protected void MReportAnalogPin(int pin, bool shouldEnable)
+        {
+            byte readCommand = (byte)(Firmata.REPORT_ANALOG_PIN | pin);
             if (shouldEnable)
-                return new byte[] { readCommand, ENABLEREPORT };
+                SerialWrite(new byte[] { readCommand, 1 }, 2);
             else
-                return new byte[] { readCommand, DISABLEREPORT };
-        }
-        
-        /// <summary>
-        /// Get the integer value that was sent using the 7-bit messages of the firmata protocol
-        /// </summary>
-        public static int GetValueFromBytes(byte MSB, byte LSB)
-        {
-            int tempValue = MSB & 0x7F;
-            tempValue = tempValue << 7;
-            tempValue = tempValue | (LSB & 0x7F);
-            return tempValue;
+                SerialWrite(new byte[] { readCommand, 0 }, 2);
         }
 
-        /// <summary>
-        /// Split an integer value to two 7-bit parts so it can be sent using the firmata protocol
-        /// </summary>
-        public static void GetBytesFromValue(int value, out byte MSB, out byte LSB)
+        protected void MReportDigitalPort(int port, bool shouldEnable)
         {
-            LSB = (byte)(value & 0x7F);
-            MSB = (byte)((value >> 7) & 0x7F);
+            byte Command = (byte)(Firmata.REPORT_DIGITAL_PORT | port);
+            if (shouldEnable)
+                SerialWrite(new byte[] { Command, 1 }, 2);
+            else
+                SerialWrite(new byte[] { Command, 0 }, 2);
         }
 
-        /// <summary>
-        /// Send a byte representing a port and get an array of boolean values indicating
-        /// the state of each individual pin
-        /// </summary>
-        public static bool[] GetPinValuesFromPort(byte portConfiguration)
+        protected void MReset()
         {
-            bool[] pins = new bool[8];
-
-            for (int i = 0; i < pins.Length; i++)
-            {
-                pins[i] = ((portConfiguration >> i) & 0x01) == 1;
-            }
-
-            return pins;
+            SerialWrite(new byte[] { Firmata.SYSTEM_RESET }, 1);
         }
 
-        /// <summary>
-        /// Send an array of boolean values indicating the state of each individual 
-        /// pin and get a byte representing a port 
-        /// </summary>
-        public static byte GetPortFromPinValues(bool[] pins)
+        protected void MSamplingInterval(int interval)
         {
-            byte port = 0;
-            for (int i = 0; i < pins.Length; i++)
-            {
-                port |= (byte) ((pins[i] ? 1 : 0) << i);
-            }
+            byte intL, intM;
+            BitHelper.Fourteen2Sevens(interval, out intL, out intM);
+ 
+            SerialWrite(new byte[] { Firmata.SYSEX_START,
+                                     Firmata.SYSEX_SAMPLING_INTERVAL,
+                                     intL, intM,
+                                     Firmata.SYSEX_END}, 10);
+        }
 
-            return port;
+        protected void MServoConfig(int pin, int min, int max, int ang)
+        {
+            if (pin < 0 || pin >= Firmata.MAX_DIGITAL_PINS)
+                throw new ArduinoException(ArduinoErrorCodes.INVALIDPIN); 
+            
+            byte minL, minM, maxL, maxM, angL, angM;
+            BitHelper.Fourteen2Sevens(min, out minL, out minM);
+            BitHelper.Fourteen2Sevens(max, out maxL, out maxM);
+            BitHelper.Fourteen2Sevens(ang, out angL, out angM);
+
+            SerialWrite(new byte[] { Firmata.SYSEX_START,
+                                     Firmata.SYSEX_SERVO_CONFIG,
+                                     (byte)pin,
+                                     minL, minM, maxL, maxM,
+                                     angL, angM,
+                                     Firmata.SYSEX_END}, 10);
+        }
+
+        protected void MSetPinMode(int pin_, PinModes mode_)
+        {
+            byte pin = (byte)pin_;
+            byte mode = (byte)mode_;
+
+            if (pin<0 || pin >= Firmata.MAX_DIGITAL_PINS)
+                throw new ArduinoException(ArduinoErrorCodes.INVALIDPIN);
+            
+            SerialWrite(new byte[] { Firmata.SET_PIN_MODE, pin, mode }, 3);
+            Pins[pin].CurrentMode = mode_;
         }
         #endregion
 
@@ -623,18 +722,23 @@ namespace ArduinoFirmataLibrary
 
         protected virtual void Dispose(bool disposing) 
         {
-            if (disposing) 
+            StopReceivingReports();
+            lock (serialPort)
             {
-                // Free other state (managed objects).
-                if ( serialPort != null )
+                if (disposing)
                 {
-                    serialPort.Close();
-                    serialPort.Dispose();
+                    serialPort.DataReceived -= SerialPortDataReceived;
+                    // Free other state (managed objects).
+                    if (serialPort != null)
+                    {
+                        serialPort.Close();
+                        serialPort.Dispose();
+                    }
                 }
+                // Free your own state (unmanaged objects).
+                // Set large fields to null.
+                serialPort = null;
             }
-            // Free your own state (unmanaged objects).
-            // Set large fields to null.
-            serialPort = null;
         }
 
         // Use C# destructor syntax for finalization code.

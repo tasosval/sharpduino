@@ -21,30 +21,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
 
 namespace ArduinoFirmataLibrary
 {
-    public class ArduinoException : Exception
+    public class AnalogPinMessage
     {
-        private readonly ArduinoErrorCodes error;
-
-        public ArduinoException(ArduinoErrorCodes error)
-        {
-            this.error = error;
-        }
-
-        public ArduinoErrorCodes Error
-        {
-            get { return error; }
-        }
+        public int Pin { get; set; }
+        public int Value { get; set; }
     }
 
-    public enum ArduinoErrorCodes
+    public class DigitalPortMessage
     {
-        CURRENTSTATEDOESNOTPERMITOPERATION = -1,
-        UNKNOWNERROR = -2,
-        INVALIDPIN = -3,
-        INVALIDVALUE = -4
+        public int Port { get; set; }
+        public int[] Pins { get; set; }
     }
 }

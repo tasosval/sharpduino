@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArduinoFirmataLibrary", "ArduinoFirmataLibrary\ArduinoFirmataLibrary.csproj", "{A42434AA-4CCB-4E2E-ACF9-467B89732735}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArduinoFirmataTest", "ArduinoFirmataTest\ArduinoFirmataTest.csproj", "{35150492-96C4-4F25-9D9E-5A8E444F3F70}"
