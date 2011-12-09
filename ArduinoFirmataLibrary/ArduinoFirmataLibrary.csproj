@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArduinoUno.cs" />
+    <Compile Include="ArduinoUnoConstants.cs" />
     <Compile Include="ArudinoMessages.cs" />
     <Compile Include="Arduino.cs" />
     <Compile Include="ArduinoConstants.cs" />

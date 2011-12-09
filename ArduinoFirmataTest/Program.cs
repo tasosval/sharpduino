@@ -22,7 +22,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 #define SHOW_MAP
-//#define TEST_DIGITAL_ANALOG_READ
+#define TEST_DIGITAL_ANALOG_READ
 //#define TEST_ANALOG_CALLBACK
 //#define TEST_DIGITAL_CALLBACK
 //#define TEST_DIGITAL_WRITE
@@ -30,6 +30,7 @@
 //#define TEST_SERVO
 
 using System;
+using System.Linq;
 using ArduinoFirmataLibrary;
 
 namespace ArduinoFirmataTest
@@ -49,42 +50,31 @@ namespace ArduinoFirmataTest
             Console.WriteLine("Firmware version: " + arduino.FirmwareVersion + " " + arduino.FirmwareName);
 
 #if SHOW_MAP
-            #region show corresponding analog pin, current mode, current output, and supported modes
-
-            Console.Write("Pin Analog Pin\tMode\tOutput\tSupported Modes");
-
-            for (int i = 0; i < 24; i++)
-            {
-                Console.Write(
-                    "\n{0}\t{1}\t{2}\t{3}\t", 
-                    i,
-                    arduino.Pins[i].AnalogPin,
-                    arduino.Pins[i].CurrentMode,
-                    arduino.Pins[i].Output
-                );
-                for (int j = 0; j < arduino.Pins[i].SupportedModes.Count; j++)
-                {
-                    Console.Write("{0}:{1}", arduino.Pins[i].SupportedModes[j], arduino.Pins[i].SupportedResolution[arduino.Pins[i].SupportedModes[j]]);
-                    Console.Write(j != arduino.Pins[i].SupportedModes.Count - 1 ? ", " : "");
-                }
-            }
-            Console.WriteLine();
-            #endregion
+            ShowMapping();
 #endif
 
 #if TEST_DIGITAL_ANALOG_READ
             #region Test DigitalRead() and analogRead()
+
+            var digitalPins = Enum.GetValues(typeof(ArduinoUnoDigitalPins)).Cast<ArduinoUnoDigitalPins>().ToList();
+            var analogPins = Enum.GetValues(typeof(ArduinoUnoAnalogPins)).Cast<ArduinoUnoAnalogPins>().ToList();
+            
+            foreach (var digitalPin in digitalPins)
+            {
+                arduino.SetPinMode((int)digitalPin, PinModes.Input);
+            }
+            foreach (var analogPin in analogPins)
+            {
+                arduino.SetPinMode((int)analogPin, PinModes.Analog);
+            }
+
+
             Console.WriteLine("Test Arduino like functions (analogRead() and digitalRead()). \nPress a key to start");
             Console.WriteLine("Press a key once again to stop.");
             Console.ReadKey(true);
-
-            // Uncomment next two lines if you need to make the pins inputs.
-             for (int i = 0; i < 128; i++)
-                arduino.SetPinMode(i, PinModes.Input );
+            
             while (true)
             {
-                var digitalPins = Enum.GetValues(typeof (ArduinoUnoDigitalPins)).Cast<ArduinoUnoDigitalPins>();
-                var analogPins = Enum.GetValues(typeof (ArduinoUnoAnalogPins)).Cast<ArduinoUnoAnalogPins>();
                 foreach (var digitalPin in digitalPins)
                 {
                     Console.Write(arduino.DigitalRead(digitalPin) + " ");
@@ -209,6 +199,28 @@ namespace ArduinoFirmataTest
                         
             Console.WriteLine("Press a key to close the console.");
             Console.ReadKey(true);
+        }
+
+        private static void ShowMapping()
+        {
+            Console.Write("Pin Analog Pin\tMode\tOutput\tSupported Modes");
+
+            for (int i = 0; i < 24; i++)
+            {
+                Console.Write(
+                    "\n{0}\t{1}\t{2}\t{3}\t", 
+                    i,
+                    arduino.Pins[i].AnalogPin,
+                    arduino.Pins[i].CurrentMode,
+                    arduino.Pins[i].Output
+                    );
+                for (int j = 0; j < arduino.Pins[i].SupportedModes.Count; j++)
+                {
+                    Console.Write("{0}:{1}", arduino.Pins[i].SupportedModes[j], arduino.Pins[i].SupportedResolution[arduino.Pins[i].SupportedModes[j]]);
+                    Console.Write(j != arduino.Pins[i].SupportedModes.Count - 1 ? ", " : "");
+                }
+            }
+            Console.WriteLine();
         }
 
         static void DigitalCallback(DigitalPortMessage val)

@@ -27,16 +27,37 @@ namespace ArduinoFirmataLibrary
 {
     public sealed class ArduinoUno : Arduino
     {
+        private const int TOTALPINS = 24;
+
         public ArduinoUno(string portName, int baudRate, Parity parity, int databits, StopBits stopBits) : base(portName, baudRate, parity, databits, stopBits)
         {
+            this.TotalPins = TOTALPINS;
+
+            for (int i = 0; i < TotalPins; i++)
+                Pins.Add(new Pin());
+
+            // Reinitialize the board to default values );
+            for (int i = 0; i < 6; i++)
+            {
+                this.SetPinMode(i, PinModes.Analog);    
+            }
+
+            this.SetPinMode(0, PinModes.Input);
+            this.SetPinMode(1, PinModes.Input);
+            for (int i = 2; i < 14; i++)
+            {
+                this.SetPinMode(i,PinModes.Output);
+            }
         }
 
-        public ArduinoUno(string portName) : base(portName)
+        public ArduinoUno(string portName) : this(portName,57600,Parity.None, 8, StopBits.One)
         {
         }
 
         public int AnalogRead(ArduinoUnoAnalogPins pin)
         {
+            if (this.Pins[ArduinoUnoConstantsHelper.AnalogPinToPin((int) pin)].CurrentMode != PinModes.Analog )
+                throw new ArduinoException(ArduinoErrorCodes.INVALIDPINSTATE);
             return this.AnalogRead((int) pin);
         }
         
@@ -50,9 +71,21 @@ namespace ArduinoFirmataLibrary
             return DigitalRead((int) pin);
         }
 
-        public void DigitalWrite(ArduinoUnoDigitalPins pin,int value)
+        public void DigitalWrite(ArduinoUnoDigitalPins pin,bool value)
         {
             DigitalWrite((int)pin,value);
+        }
+
+        public override void SetPinMode(int pin, PinModes mode)
+        {
+            if (mode != PinModes.Analog)
+            {
+                base.SetPinMode(pin, mode);
+            }
+            else
+            {
+                base.SetPinMode(ArduinoUnoConstantsHelper.AnalogPinToPin(pin),mode);
+            }
         }
     }
 }

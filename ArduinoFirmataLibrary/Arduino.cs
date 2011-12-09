@@ -109,6 +109,8 @@ namespace ArduinoFirmataLibrary
         /// The pins list of the device
         /// </summary>
         public IList<Pin> Pins { get; private set; }
+
+        public int TotalPins { get; protected set; }
         #endregion
 
         /// <summary>
@@ -138,11 +140,6 @@ namespace ArduinoFirmataLibrary
         protected Arduino(string portName, int baudRate, Parity parity, int databits, StopBits stopBits)
         {
             Pins = new List<Pin>();
-
-            Pins = new Pin[Firmata.MAX_DIGITAL_PINS];
-            for (int i=0; i<Pins.Count; i++)
-                Pins[i] = new Pin();
-
             try
             {
                 serialPort = new SerialPort(portName, baudRate, parity, databits, stopBits);
@@ -158,6 +155,8 @@ namespace ArduinoFirmataLibrary
 
             serialPort.DataReceived += SerialPortDataReceived;
         }
+
+        
 
         /// <summary>
         /// Initializes a new instance of the Arduino class giving information about the
@@ -311,7 +310,7 @@ namespace ArduinoFirmataLibrary
             return Pins[pin].Input;
         }
 
-        protected void DigitalWrite(int pin, int value)
+        protected void DigitalWrite(int pin, bool value)
         {
             byte port = (byte)(pin/8);
 
@@ -321,7 +320,7 @@ namespace ArduinoFirmataLibrary
             DigitalWritePort(port, (byte)port_outputs[port]);
         }
 
-        private void DigitalWrite_(int pin, int value)
+        private void DigitalWrite_(int pin, bool value)
         {
             // Do nothing if we have wrong pin number
             if (pin<0 || pin >= Firmata.MAX_DIGITAL_PINS)
@@ -331,8 +330,8 @@ namespace ArduinoFirmataLibrary
             int port = pin / 8;
             int pinInPort = pin % 8;
 
-            Pins[pin].Output = value == 0 ? 0 : 1;
-            if (value == 0)
+            Pins[pin].Output = !value ? 0 : 1;
+            if (!value)
                 port_outputs[port] &=  ~(1 << pinInPort); 
             else
                 port_outputs[port] |= 1 << pinInPort;
@@ -345,7 +344,7 @@ namespace ArduinoFirmataLibrary
             MDigitalIOMessage((byte)port, pins);
         }
 
-        public void SetPinMode(int pin, PinModes mode)
+        public virtual void SetPinMode(int pin, PinModes mode)
         {
             MSetPinMode(pin, mode);
         }
@@ -542,14 +541,17 @@ namespace ArduinoFirmataLibrary
                                 else if (msgBuf[0] == (byte)Firmata.SYSEX_PIN_STATE_RESPONSE)
                                 {
                                     int pno = msgBuf[1];
-                                    Pins[pno].CurrentMode = (PinModes)msgBuf[2];
-                                    // System.Diagnostics.Debug.WriteLine(pno+": "+Pins[pno].CurrentMode);
-                                    int tmp = 0;
-                                    for (int i = 3; i < msgLength; i++)
-                                        tmp |= (msgBuf[i] << (i - 3) * 7);
-                                    Pins[pno].Output = tmp;
-                                    if (Pins[pno].CurrentMode == PinModes.Output)
-                                        DigitalWrite_(pno, Pins[pno].Output);
+                                    if (Pins.Count > pno)
+                                    {
+                                        Pins[pno].CurrentMode = (PinModes) msgBuf[2];
+                                        // System.Diagnostics.Debug.WriteLine(pno+": "+Pins[pno].CurrentMode);
+                                        int tmp = 0;
+                                        for (int i = 3; i < msgLength; i++)
+                                            tmp |= (msgBuf[i] << (i - 3)*7);
+                                        Pins[pno].Output = tmp;
+                                        if (Pins[pno].CurrentMode == PinModes.Output)
+                                            DigitalWrite_(pno, Pins[pno].Output != 0);
+                                    }
                                     pinStateResponded = true;
                                 }
                                 firmataState = FirmataState.NONE;
