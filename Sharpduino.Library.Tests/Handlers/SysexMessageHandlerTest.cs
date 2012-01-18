@@ -35,7 +35,7 @@ namespace Sharpduino.Library.Tests.Handlers
         {
             byte[] messageBytes = CreateMessageBytes();
 
-            var mockEventManager = new Mock<IEventManager>();
+            var mockEventManager = new Mock<IMessageBroker>();
             // Make sure that the CreateEvent method is called with the arguments that we expect
             mockEventManager.
                 Setup(p => p.CreateEvent(It.Is<SysexFirmwareMessage>(
@@ -67,7 +67,7 @@ namespace Sharpduino.Library.Tests.Handlers
             byte[] messageBytes = CreateMessageBytes();
             messageBytes[1] = SysexFirmwareMessageHandler.END_SYSEX;
 
-            var mockEventManager = new Mock<IEventManager>();
+            var mockEventManager = new Mock<IMessageBroker>();
 
             var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
 
@@ -88,7 +88,7 @@ namespace Sharpduino.Library.Tests.Handlers
         {
             byte[] messageBytes = CreateMessageBytes();
 
-            var mockEventManager = new Mock<IEventManager>();
+            var mockEventManager = new Mock<IMessageBroker>();
 
             var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
 

@@ -47,7 +47,7 @@ Query Firmware Name and Version
         private SysexFirmwareMessage sysexFirmwareMessage;
         private int currentByteCount;
 
-        public SysexFirmwareMessageHandler(IEventManager eventManager) : base(eventManager)
+        public SysexFirmwareMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {
             currentHandlerState = HandlerState.EndStart;
             currentByteCount = 0;
@@ -118,7 +118,7 @@ Query Firmware Name and Version
                     if (messageByte == 0xF7)
                     {
                         currentHandlerState = HandlerState.EndStart;
-                        eventManager.CreateEvent(sysexFirmwareMessage);
+                        messageBroker.CreateEvent(sysexFirmwareMessage);
                         return false;
                     }
                     sysexFirmwareMessage.FirmwareName += Convert.ToChar(messageByte);

@@ -11,15 +11,14 @@ using Sharpduino.Library.Base.Messages;
 namespace Sharpduino.Library.Tests
 {
     [TestFixture]
-    public class EventManagerTest
+    public class MessageBrokerTest
     {
         [Test]
         public void Manager_Should_Call_Created_Event_In_An_Interested_Handler()
         {
             var mockSysexFirmwareMessageHandler = new Mock<IHandle<object>>();
-            //mockSysexFirmwareMessageHandler.Setup(p => p.Handle(It.IsAny<SysexFirmwareMessage>())).Verifiable();
 
-            var manager = new EventManager();
+            var manager = new MessageBroker();
             manager.Subscribe(mockSysexFirmwareMessageHandler.Object);
 
             manager.CreateEvent(new object());
@@ -33,7 +32,7 @@ namespace Sharpduino.Library.Tests
             var mockSysexFirmwareMessageHandler = new Mock<IHandle<object>>();
             var mockSysexFirmwareMessageHandler2 = new Mock<IHandle<object>>();
 
-            var manager = new EventManager();
+            var manager = new MessageBroker();
             manager.Subscribe(mockSysexFirmwareMessageHandler.Object);
             manager.Subscribe(mockSysexFirmwareMessageHandler2.Object);
 
@@ -49,7 +48,7 @@ namespace Sharpduino.Library.Tests
             var mockMessageHandler = new Mock<IHandle<SysexFirmwareMessage>>();
             var mockObjectHanlder = new Mock<IHandle<object>>();
 
-            var manager = new EventManager();
+            var manager = new MessageBroker();
             manager.Subscribe(mockMessageHandler.Object);
             manager.Subscribe(mockObjectHanlder.Object);
 
@@ -69,12 +68,53 @@ namespace Sharpduino.Library.Tests
         {
             var mockMessageHandler = new Mock<IHandle<object>>();
 
-            var manager = new EventManager();
+            var manager = new MessageBroker();
             manager.Subscribe(mockMessageHandler.Object);
             manager.UnSubscribe(mockMessageHandler.Object);
             manager.CreateEvent(new object());
 
             mockMessageHandler.Verify(p => p.Handle(It.IsAny<object>()),Times.Never());
+        }
+
+        [Test]
+        public void Broker_Successfully_Subscribes_Multiple_IHandle_Class()
+        {
+            var broker = new MessageBroker();
+
+            var mockTestHandler = new Mock<object>();
+            mockTestHandler.As<IHandle<object>>();
+            mockTestHandler.As<IHandle<SysexFirmwareMessage>>();
+
+            broker.Subscribe(mockTestHandler.Object);
+
+            mockTestHandler.As<IHandle<object>>().Verify(p => p.Handle(It.IsAny<object>()), Times.Never());
+            mockTestHandler.As<IHandle<SysexFirmwareMessage>>().Verify(p => p.Handle(It.IsAny<SysexFirmwareMessage>()), Times.Never());
+
+            broker.CreateEvent(new object());
+            mockTestHandler.As<IHandle<object>>().Verify(p => p.Handle(It.IsAny<object>()), Times.Once());
+            mockTestHandler.As<IHandle<SysexFirmwareMessage>>().Verify(p => p.Handle(It.IsAny<SysexFirmwareMessage>()), Times.Never());
+
+            broker.CreateEvent(new SysexFirmwareMessage());
+            mockTestHandler.As<IHandle<object>>().Verify(p => p.Handle(It.IsAny<object>()), Times.Once());
+            mockTestHandler.As<IHandle<SysexFirmwareMessage>>().Verify(p => p.Handle(It.IsAny<SysexFirmwareMessage>()), Times.Once());
+        }
+
+        [Test]
+        public void Broker_Successfully_Unsubscribes_Multiple_IHandle_Class()
+        {
+            var broker = new MessageBroker();
+
+            var mockTestHandler = new Mock<object>();
+            mockTestHandler.As<IHandle<object>>();
+            mockTestHandler.As<IHandle<SysexFirmwareMessage>>();
+
+            broker.Subscribe(mockTestHandler.Object);
+            broker.UnSubscribe(mockTestHandler.Object);
+
+            broker.CreateEvent(new object());
+            broker.CreateEvent(new SysexFirmwareMessage());
+            mockTestHandler.As<IHandle<object>>().Verify(p => p.Handle(It.IsAny<object>()), Times.Never());
+            mockTestHandler.As<IHandle<SysexFirmwareMessage>>().Verify(p => p.Handle(It.IsAny<SysexFirmwareMessage>()), Times.Never());
         }
     }
 }
