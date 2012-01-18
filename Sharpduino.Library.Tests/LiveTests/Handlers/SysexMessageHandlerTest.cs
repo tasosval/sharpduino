@@ -18,13 +18,13 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
     {
         private SerialPort port;
 
-        [SetUp]
+        [TestFixtureSetUp]
         public void Init()
         {
             port = new SerialPort("COM3", 57600, Parity.None, 8, StopBits.One);            
         }
 
-        [TearDown]
+        [TestFixtureTearDown]
         public void Finish()
         {
             port.Close();
@@ -34,7 +34,7 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
         [Test]
         public void Receive_Firmware_Message_From_Live_Arduino_Running_Standard_Firmata_2_3()
         {
-            var mockEventManager = new Mock<IEventManager>();
+            var mockEventManager = new Mock<IMessageBroker>();
             mockEventManager.Setup(
                 p =>
                 p.CreateEvent(

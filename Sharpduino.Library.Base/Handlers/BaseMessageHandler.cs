@@ -7,16 +7,16 @@ namespace Sharpduino.Library.Base.Handlers
 {
     public abstract class BaseMessageHandler : IMessageHandler
     {
-        protected readonly IEventManager eventManager;
+        protected readonly IMessageBroker messageBroker;
         
         public const int MAXANALOGPINS = 16;
         public const int MAXDIGITALPORTS = 16;
         public const int MAXDIGITALPINS = 128;
         public const int MAXDATABYTES = 1024;
 
-        protected BaseMessageHandler(IEventManager eventManager)
+        protected BaseMessageHandler(IMessageBroker messageBroker)
         {
-            this.eventManager = eventManager;
+            this.messageBroker = messageBroker;
         }
 
         /// <summary>

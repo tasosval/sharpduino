@@ -31,7 +31,7 @@ namespace Sharpduino.Library.Base
 
         protected Queue<byte> IncomingData;
 
-        protected EventManager eventManager;
+        protected MessageBroker messageBroker;
 
         public FirmataEmptyBase(string portName)
         {
@@ -74,7 +74,7 @@ namespace Sharpduino.Library.Base
 
         private void AddBasicMessageHandlers()
         {
-            AvailableHandlers.Add(new SysexFirmwareMessageHandler(eventManager));
+            AvailableHandlers.Add(new SysexFirmwareMessageHandler(messageBroker));
 
             
         }

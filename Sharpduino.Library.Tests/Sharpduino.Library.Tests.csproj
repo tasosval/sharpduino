@@ -55,7 +55,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventManagerTest.cs" />
+    <Compile Include="LiveTests\Handlers\AnalogMessageHandlerTest.cs" />
+    <Compile Include="MessageBrokerTest.cs" />
     <Compile Include="Handlers\SysexMessageHandlerTest.cs" />
     <Compile Include="LiveTests\Handlers\SysexMessageHandlerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
