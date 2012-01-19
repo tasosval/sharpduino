@@ -10,7 +10,7 @@ namespace Sharpduino.Library.Base.Handlers
 
 /*Query Firmware Name and Version
 Query Firmware Name and Version
-0  START_SYSEX (0xF0)
+0  START_MESSAGE (0xF0)
 1  queryFirmware (0x79)
 2  END_SYSEX (0xF7)
 */
@@ -18,7 +18,7 @@ Query Firmware Name and Version
     /// Class that handles the receipt of the firmware sysex message
     /// The firmware name to be reported should be exactly the same as the name of the Arduino file, minus the .pde. So for Standard_Firmata.pde, the firmware name is: Standard_Firmata.
     /// Receive Firmware Name and Version (after query)
-    /// 0  START_SYSEX (0xF0)
+    /// 0  START_MESSAGE (0xF0)
     /// 1  queryFirmware (0x79)
     /// 2  major version (0-127)
     /// 3  minor version (0-127)
@@ -29,7 +29,6 @@ Query Firmware Name and Version
     /// </summary>
     public class SysexFirmwareMessageHandler : BaseMessageHandler
     {
-        public const byte START_SYSEX = 0xF0;
         public const byte QUERY_FIRMWARE = 0x79;
         public const byte END_SYSEX = 0xF7;
 
@@ -51,6 +50,7 @@ Query Firmware Name and Version
         {
             currentHandlerState = HandlerState.EndStart;
             currentByteCount = 0;
+            START_MESSAGE = 0xF0;        
         }
 
         /// <summary>

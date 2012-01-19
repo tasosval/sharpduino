@@ -9,34 +9,33 @@ namespace Sharpduino.Library.Base.Handlers
 {
     public class AnalogMessageHandler : BaseMessageHandler
     {
-        private enum AnalogMessageHandlerState
+        private enum HandlerState
         {
             StartEnd,
             LSB,
             MSB
         }
 
-        private AnalogMessageHandlerState currentHandlerState;
-
-        public const byte START_MESSAGE = 0xE0;
-
+        private HandlerState currentHandlerState;
+        
         private AnalogMessage analogMessage;
         private byte LSBCache;
             
 
         public AnalogMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {
-            currentHandlerState = AnalogMessageHandlerState.StartEnd;
+            currentHandlerState = HandlerState.StartEnd;
+            START_MESSAGE = 0xE0;
         }
 
         public override bool CanHandle(byte firstByte)
         {
             switch (currentHandlerState)
             {
-                case AnalogMessageHandlerState.StartEnd:
+                case HandlerState.StartEnd:
                     return (firstByte & MESSAGETYPEMASK) == START_MESSAGE;
-                case AnalogMessageHandlerState.LSB:
-                case AnalogMessageHandlerState.MSB:
+                case HandlerState.LSB:
+                case HandlerState.MSB:
                     return true;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -48,25 +47,25 @@ namespace Sharpduino.Library.Base.Handlers
             if (!CanHandle(messageByte))
             {
                 // Reset the state of the handler
-                currentHandlerState = AnalogMessageHandlerState.StartEnd;
+                currentHandlerState = HandlerState.StartEnd;
                 throw new MessageHandlerException("Error with the incoming byte. This is not a valid AnalogMessage");
             }
 
             switch (currentHandlerState)
             {
-                case AnalogMessageHandlerState.StartEnd:
+                case HandlerState.StartEnd:
                     analogMessage = new AnalogMessage();
 					analogMessage.Pin = messageByte & MESSAGEPINMASK;
-                    currentHandlerState = AnalogMessageHandlerState.LSB;
+                    currentHandlerState = HandlerState.LSB;
                     return true;
-                case AnalogMessageHandlerState.LSB:
+                case HandlerState.LSB:
                     LSBCache = messageByte;
-                    currentHandlerState = AnalogMessageHandlerState.MSB;
+                    currentHandlerState = HandlerState.MSB;
                     return true;
-                case AnalogMessageHandlerState.MSB:
+                case HandlerState.MSB:
                     analogMessage.Value = BitHelper.Sevens2Fourteen(LSBCache, messageByte);
                     messageBroker.CreateEvent(analogMessage);
-                    currentHandlerState = AnalogMessageHandlerState.StartEnd;
+                    currentHandlerState = HandlerState.StartEnd;
                     return false;
                 default:
                     throw new ArgumentOutOfRangeException();
