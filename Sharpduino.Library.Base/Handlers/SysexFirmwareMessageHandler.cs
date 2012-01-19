@@ -100,6 +100,8 @@ Query Firmware Name and Version
             switch (currentHandlerState)
             {
                 case HandlerState.StartSysex:
+                    // MAX_DATA bytes AFTER the command byte
+                    currentByteCount = 0;
                     currentHandlerState = HandlerState.QueryFirmware;
                     return true;
                 case HandlerState.QueryFirmware:
@@ -124,7 +126,6 @@ Query Firmware Name and Version
                     sysexFirmwareMessage.FirmwareName += Convert.ToChar(messageByte);
                     return true;
                 case HandlerState.EndStart:
-                    currentByteCount = 1;
                     currentHandlerState = HandlerState.StartSysex;
                     sysexFirmwareMessage = new SysexFirmwareMessage{FirmwareName = ""};
                     return true;

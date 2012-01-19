@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitHelper.cs" />
     <Compile Include="Constants\PinModes.cs" />
     <Compile Include="Exceptions\MessageHandlerException.cs" />
     <Compile Include="Extensions.cs" />
