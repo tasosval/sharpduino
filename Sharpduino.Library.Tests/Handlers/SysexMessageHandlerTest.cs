@@ -16,11 +16,11 @@ namespace Sharpduino.Library.Tests.Handlers
     {
 		byte[] messageBytes;
 		
-        private static byte[] CreateMessageBytes()
+        private byte[] CreateMessageBytes()
         {
             return new byte[]
             {
-                SysexFirmwareMessageHandler.START_SYSEX,
+                handler.START_MESSAGE,
                 SysexFirmwareMessageHandler.QUERY_FIRMWARE,
                 2, // Major version
                 3, // Minor version
@@ -104,12 +104,12 @@ namespace Sharpduino.Library.Tests.Handlers
         }
 
         [Test]
-        public void Does_Not_Handle_Any_Other_Message()
-        {            
+        public override void Ignores_All_Other_Messages()
+        {
             for (byte i = 0; i < byte.MaxValue; i++)
             {
-                if ( i != SysexFirmwareMessageHandler.START_SYSEX )
-                    Assert.False(handler.CanHandle(i));
+                if (i != handler.START_MESSAGE)
+                    Assert.IsFalse(handler.CanHandle(i));
                 else
                     Assert.IsTrue(handler.CanHandle(i));
             }

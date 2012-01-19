@@ -18,5 +18,20 @@ namespace Sharpduino.Library.Tests
             mockBroker = new Mock<IMessageBroker>();
             handler = CreateHandler();
         }
+
+        /// <summary>
+        /// This method checks to see if the handler ignores all other messages
+        /// Override with the TestAttribute and a call to base.Ignores_All_Other_Messages() to use it
+        /// </summary>
+        public virtual void Ignores_All_Other_Messages()
+        {
+            for (byte i = 0; i < byte.MaxValue; i++)
+            {
+                if ((i & BaseMessageHandler.MESSAGETYPEMASK) != handler.START_MESSAGE)
+                    Assert.IsFalse(handler.CanHandle(i));
+                else
+                    Assert.IsTrue(handler.CanHandle(i));
+            }
+        }
     }
 }

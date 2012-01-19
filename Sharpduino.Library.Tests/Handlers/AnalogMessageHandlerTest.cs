@@ -23,7 +23,7 @@ namespace Sharpduino.Library.Tests.Handlers
             var bytes = new byte[]
                             {
 								// Analog Message 					 Pin
-                                AnalogMessageHandler.START_MESSAGE | 0x01, 
+                                (byte) (handler.START_MESSAGE | 0x01), 
                                 0x01, //LSB bits 0-6
                                 0x71, //MSB bits 0-6
                             };
@@ -48,16 +48,18 @@ namespace Sharpduino.Library.Tests.Handlers
 					mes.Value == BitHelper.Sevens2Fourteen(bytes[1],bytes[2]))),Times.Once());
         }
 
+
         [Test]
-        public void Does_Not_Handle_Other_Messages()
+        public override void Ignores_All_Other_Messages()
         {
-            for (byte i = 0; i < byte.MaxValue; i++)
-            {
-                if ( (i & 0xF0) != AnalogMessageHandler.START_MESSAGE )
-                    Assert.IsFalse(handler.CanHandle(i));
-                else
-                    Assert.IsTrue(handler.CanHandle(i));
-            }
+            base.Ignores_All_Other_Messages();
+//            for (byte i = 0; i < byte.MaxValue; i++)
+//            {
+//                if ( (i & BaseMessageHandler.MESSAGETYPEMASK) != handler.START_MESSAGE )
+//                    Assert.IsFalse(handler.CanHandle(i));
+//                else
+//                    Assert.IsTrue(handler.CanHandle(i));
+//            }
         }
     }
 }

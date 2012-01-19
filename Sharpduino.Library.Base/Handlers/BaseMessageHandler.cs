@@ -16,6 +16,8 @@ namespace Sharpduino.Library.Base.Handlers
 		public const byte MESSAGETYPEMASK = 0xF0;
 		public const byte MESSAGEPINMASK = 0x0F;
 
+        public byte START_MESSAGE { get; protected set; }
+
         protected BaseMessageHandler(IMessageBroker messageBroker)
         {
             this.messageBroker = messageBroker;

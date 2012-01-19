@@ -42,14 +42,14 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
                         mes => mes.MajorVersion == 2 && mes.MinorVersion == 3))).
                         Verifiable();
 
-            SysexFirmwareMessageHandler handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
+            var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
 
             port.Open();
-            /*  0  START_SYSEX (0xF0)
+            /*  0  START_MESSAGE (0xF0)
                 1  queryFirmware (0x79)
                 2  END_SYSEX (0xF7)
              */
-            port.Write(new byte[]{SysexFirmwareMessageHandler.START_SYSEX,SysexFirmwareMessageHandler.QUERY_FIRMWARE,SysexFirmwareMessageHandler.END_SYSEX},0,3);
+            port.Write(new byte[]{handler.START_MESSAGE,SysexFirmwareMessageHandler.QUERY_FIRMWARE,SysexFirmwareMessageHandler.END_SYSEX},0,3);
 
             // Wait for the arduino to reply
             Thread.Sleep(100);

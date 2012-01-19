@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitHelperTest.cs" />
     <Compile Include="Handlers\AnalogMessageHandlerTest.cs" />
     <Compile Include="Handlers\BaseMessageHandlerTest.cs" />
     <Compile Include="MessageBrokerTest.cs" />

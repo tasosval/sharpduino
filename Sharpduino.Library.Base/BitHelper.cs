@@ -28,13 +28,13 @@ namespace Sharpduino.Library.Base
         /// Send a byte representing a port and get an array of boolean values indicating
         /// the state of each individual pin
         /// </summary>
-        public static int[] PortVal2PinVals(byte val)
+        public static bool[] PortVal2PinVals(byte val)
         {
-            int[] pins = new int[8];
+            var pins = new bool[8];
 
             for (int i = 0; i < pins.Length; i++)
             {
-                pins[i] = (val >> i) & 0x01;
+                pins[i] = ( (val >> i) & 0x01 ) == 1;
             }
 
             return pins;
@@ -44,12 +44,12 @@ namespace Sharpduino.Library.Base
         /// Send an array of boolean values indicating the state of each individual 
         /// pin and get a byte representing a port 
         /// </summary>
-        public static byte PinVals2PortVal(int[] pins)
+        public static byte PinVals2PortVal(bool[] pins)
         {
             byte port = 0;
             for (int i = 0; i < pins.Length; i++)
             {
-                port |= (byte)(pins[i] << i);
+                port |= (byte)( (pins[i] ? 1 : 0 ) << i);
             }
 
             return port;
