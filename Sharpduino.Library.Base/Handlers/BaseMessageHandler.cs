@@ -13,6 +13,8 @@ namespace Sharpduino.Library.Base.Handlers
         public const int MAXDIGITALPORTS = 16;
         public const int MAXDIGITALPINS = 128;
         public const int MAXDATABYTES = 1024;
+		public const byte MESSAGETYPEMASK = 0xF0;
+		public const byte MESSAGEPINMASK = 0x0F;
 
         protected BaseMessageHandler(IMessageBroker messageBroker)
         {
