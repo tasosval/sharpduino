@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Sharpduino.Library.Base.Exceptions;
+using Sharpduino.Library.Base.Messages;
 
 namespace Sharpduino.Library.Base.Handlers
 {
@@ -15,27 +17,29 @@ namespace Sharpduino.Library.Base.Handlers
             MSB
         }
 
-        private AnalogMessageHandlerState currentState;
+        private AnalogMessageHandlerState currentHandlerState;
 
         public const byte START_MESSAGE = 0xE0;
 
+        private AnalogMessage analogMessage;
+        private byte LSBCache;
+            
+
         public AnalogMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {
-            currentState = AnalogMessageHandlerState.StartEnd;
+            currentHandlerState = AnalogMessageHandlerState.StartEnd;
         }
 
         public override bool CanHandle(byte firstByte)
         {
-            switch (currentState)
+            switch (currentHandlerState)
             {
                 case AnalogMessageHandlerState.StartEnd:
-                    break;
-                case AnalogMessageHandlerState.PinNumber:
-                    break;
+                    return firstByte == START_MESSAGE;
+                case AnalogMessageHandlerState.PinNumber:                    
                 case AnalogMessageHandlerState.LSB:
-                    break;
                 case AnalogMessageHandlerState.MSB:
-                    break;
+                    return true;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -43,7 +47,37 @@ namespace Sharpduino.Library.Base.Handlers
 
         public override bool Handle(byte messageByte)
         {
-            throw new NotImplementedException();
+            if (!CanHandle(messageByte))
+            {
+                // Reset the state of the handler
+                currentHandlerState = AnalogMessageHandlerState.StartEnd;
+                throw new MessageHandlerException("Error with the incoming byte. This is not a valid SysexMessage");
+            }
+
+            switch (currentHandlerState)
+            {
+                case AnalogMessageHandlerState.StartEnd:
+                    analogMessage = new AnalogMessage();
+                    currentHandlerState = AnalogMessageHandlerState.PinNumber;
+                    return true;
+                case AnalogMessageHandlerState.PinNumber:
+                    if (messageByte > MAXANALOGPINS)
+                        throw new MessageHandlerException(string.Format("The value {0} is not an analog pin", messageByte));
+                    analogMessage.Pin = messageByte;
+                    currentHandlerState = AnalogMessageHandlerState.LSB;
+                    return true;
+                case AnalogMessageHandlerState.LSB:
+                    LSBCache = messageByte;
+                    currentHandlerState = AnalogMessageHandlerState.MSB;
+                    return true;
+                case AnalogMessageHandlerState.MSB:
+                    analogMessage.Value = BitHelper.Sevens2Fourteen(LSBCache, messageByte);
+                    messageBroker.CreateEvent(analogMessage);
+                    currentHandlerState = AnalogMessageHandlerState.StartEnd;
+                    return false;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

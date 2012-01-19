@@ -93,7 +93,7 @@ namespace Sharpduino.Library.Tests.Handlers
             var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
 
             int clamp = 0;
-            for (int i = 0; i < BaseMessageHandler.MAXDATABYTES; i++)
+            for (int i = 0; i < BaseMessageHandler.MAXDATABYTES+2; i++)
             {
                 clamp = i > 1 ? 2 : i;
                 Assert.IsTrue(handler.CanHandle(messageBytes[clamp]));
@@ -106,6 +106,19 @@ namespace Sharpduino.Library.Tests.Handlers
 
             // See if the handler was reset
             Assert.IsTrue(handler.CanHandle(messageBytes[0]));
+        }
+
+        [Test]
+        public void Does_Not_Handle_Any_Other_Message()
+        {
+            var mockBroker = new Mock<IMessageBroker>();
+            var handler = new SysexFirmwareMessageHandler(mockBroker.Object);
+
+            for (byte i = 0; i < byte.MaxValue; i++)
+            {
+                if ( i != SysexFirmwareMessageHandler.START_SYSEX )
+                    Assert.False(handler.CanHandle(i));
+            }
         }
     }
 }
