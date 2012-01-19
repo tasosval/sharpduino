@@ -12,7 +12,6 @@ namespace Sharpduino.Library.Base.Handlers
         private enum AnalogMessageHandlerState
         {
             StartEnd,
-            PinNumber,
             LSB,
             MSB
         }
@@ -35,8 +34,7 @@ namespace Sharpduino.Library.Base.Handlers
             switch (currentHandlerState)
             {
                 case AnalogMessageHandlerState.StartEnd:
-                    return firstByte == START_MESSAGE;
-                case AnalogMessageHandlerState.PinNumber:                    
+                    return (firstByte & MESSAGETYPEMASK) == START_MESSAGE;
                 case AnalogMessageHandlerState.LSB:
                 case AnalogMessageHandlerState.MSB:
                     return true;
@@ -51,19 +49,14 @@ namespace Sharpduino.Library.Base.Handlers
             {
                 // Reset the state of the handler
                 currentHandlerState = AnalogMessageHandlerState.StartEnd;
-                throw new MessageHandlerException("Error with the incoming byte. This is not a valid SysexMessage");
+                throw new MessageHandlerException("Error with the incoming byte. This is not a valid AnalogMessage");
             }
 
             switch (currentHandlerState)
             {
                 case AnalogMessageHandlerState.StartEnd:
                     analogMessage = new AnalogMessage();
-                    currentHandlerState = AnalogMessageHandlerState.PinNumber;
-                    return true;
-                case AnalogMessageHandlerState.PinNumber:
-                    if (messageByte > MAXANALOGPINS)
-                        throw new MessageHandlerException(string.Format("The value {0} is not an analog pin", messageByte));
-                    analogMessage.Pin = messageByte;
+					analogMessage.Pin = messageByte & MESSAGEPINMASK;
                     currentHandlerState = AnalogMessageHandlerState.LSB;
                     return true;
                 case AnalogMessageHandlerState.LSB:

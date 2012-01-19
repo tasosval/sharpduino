@@ -44,7 +44,7 @@ namespace Sharpduino.Library.Base
             throw new NotImplementedException();
             // TODO : open port
             // TODO : subscribe to port events
-            AddExpansionMessageHandlers();
+            //AddExpansionMessageHandlers();
         }
 
         /// <summary>

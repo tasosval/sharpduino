@@ -12,8 +12,10 @@ using Sharpduino.Library.Base.Messages;
 namespace Sharpduino.Library.Tests.Handlers
 {
     [TestFixture]
-    public class SysexMessageHandlerTest
+    public class SysexMessageHandlerTest : BaseMessageHandlerTest<SysexFirmwareMessageHandler>
     {
+		byte[] messageBytes;
+		
         private static byte[] CreateMessageBytes()
         {
             return new byte[]
@@ -30,20 +32,21 @@ namespace Sharpduino.Library.Tests.Handlers
             };
         }
 
+        protected override SysexFirmwareMessageHandler CreateHandler()
+        {
+            return new SysexFirmwareMessageHandler(mockBroker.Object);			
+        }
+
+        public override void SetupEachTest()
+        {
+            base.SetupEachTest();
+            messageBytes = CreateMessageBytes();
+        }
+
         [Test]
         public void Successfull_Sysex_Message()
         {
-            byte[] messageBytes = CreateMessageBytes();
-
-            var mockEventManager = new Mock<IMessageBroker>();
-            // Make sure that the CreateEvent method is called with the arguments that we expect
-            mockEventManager.
-                Setup(p => p.CreateEvent(It.Is<SysexFirmwareMessage>(
-                    s => s.FirmwareName == "TEST" && s.MajorVersion == 2 && s.MinorVersion == 3))).
-                    Verifiable();            
-
-            var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
-            for (int i = 0; i < messageBytes.Length-1; i++)
+			for (int i = 0; i < messageBytes.Length-1; i++)
             {
                 var messageByte = messageBytes[i];
                 Assert.IsTrue(handler.CanHandle(messageByte));
@@ -52,10 +55,13 @@ namespace Sharpduino.Library.Tests.Handlers
 
             Assert.IsTrue(handler.CanHandle(messageBytes.Last()));
             Assert.IsFalse(handler.Handle(messageBytes.Last()));
-          
-            mockEventManager.Verify(p => p.CreateEvent(It.IsAny<SysexFirmwareMessage>()),Times.Once());
-            mockEventManager.Verify();
-
+          			
+            // Make sure that the CreateEvent method is called with the arguments that we expectx
+            mockBroker.Verify(p => p.CreateEvent(It.Is<SysexFirmwareMessage>(
+                    s => s.FirmwareName == "TEST" && 
+					s.MajorVersion == 2 && 
+					s.MinorVersion == 3)),Times.Once());
+			 
             // See if the handler is reset and can again handle a new message
             Assert.IsTrue(handler.CanHandle(messageBytes[0]));
             Assert.IsFalse(handler.CanHandle(messageBytes[1]));
@@ -64,12 +70,7 @@ namespace Sharpduino.Library.Tests.Handlers
         [Test]
         public void Failed_Sysex_Message_With_Wrong_Command_Byte()
         {
-            byte[] messageBytes = CreateMessageBytes();
             messageBytes[1] = SysexFirmwareMessageHandler.END_SYSEX;
-
-            var mockEventManager = new Mock<IMessageBroker>();
-
-            var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
 
             // Give the first byte correctly
             Assert.IsTrue(handler.CanHandle(messageBytes[0]));
@@ -86,12 +87,6 @@ namespace Sharpduino.Library.Tests.Handlers
         [Test]
         public void Failed_Sysex_Message_With_Exceeded_Bytecount()
         {
-            byte[] messageBytes = CreateMessageBytes();
-
-            var mockEventManager = new Mock<IMessageBroker>();
-
-            var handler = new SysexFirmwareMessageHandler(mockEventManager.Object);
-
             int clamp = 0;
             for (int i = 0; i < BaseMessageHandler.MAXDATABYTES+2; i++)
             {
@@ -110,14 +105,13 @@ namespace Sharpduino.Library.Tests.Handlers
 
         [Test]
         public void Does_Not_Handle_Any_Other_Message()
-        {
-            var mockBroker = new Mock<IMessageBroker>();
-            var handler = new SysexFirmwareMessageHandler(mockBroker.Object);
-
+        {            
             for (byte i = 0; i < byte.MaxValue; i++)
             {
                 if ( i != SysexFirmwareMessageHandler.START_SYSEX )
                     Assert.False(handler.CanHandle(i));
+                else
+                    Assert.IsTrue(handler.CanHandle(i));
             }
         }
     }
