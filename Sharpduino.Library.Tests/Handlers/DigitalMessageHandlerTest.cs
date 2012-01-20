@@ -29,6 +29,8 @@ namespace Sharpduino.Library.Tests.Handlers
                                 0x01, // 7-13 bitmask
 		                    };
 
+            mockBroker.Setup(p => p.CreateEvent(It.IsAny<DigitalMessage>()));
+
 		    for (int i = 0; i < bytes.Length-1; i++)
 		    {
 		        Assert.IsTrue(handler.CanHandle(bytes[i]));
@@ -40,7 +42,7 @@ namespace Sharpduino.Library.Tests.Handlers
 
             mockBroker.Verify(p => p.CreateEvent(It.Is<DigitalMessage>(mes =>
                 mes.Port == (bytes[0] & BaseMessageHandler.MESSAGEPINMASK) &&
-                mes.PinStates == BitHelper.Sevens2Fourteen(bytes[1],bytes[2]))),
+                mes.PinStates.SequenceEqual(BitHelper.PortVal2PinVals((byte) BitHelper.Sevens2Fourteen(bytes[1],bytes[2]))))),
                 Times.Once());
 
             // Check if the handler has reset
