@@ -5,13 +5,20 @@ using Sharpduino.Library.Base.Handlers;
 
 namespace Sharpduino.Library.Tests
 {
-    public abstract class BaseMessageHandlerTest<T> where T : BaseMessageHandler
+    public abstract class BaseMessageHandlerTest<T> where T : IMessageHandler
     {
         protected Mock<IMessageBroker> mockBroker;
         protected T handler;
 
+        /// <summary>
+        /// Method that should be overriden to create the handler that we want to test
+        /// </summary>
         protected abstract T CreateHandler();
 		
+        /// <summary>
+        /// Override this if you want a different setup than having
+        /// a new mockbroker and instance of the handler for each test
+        /// </summary>
         [SetUp]
         public virtual void SetupEachTest()
         {

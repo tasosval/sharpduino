@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages;
 
 namespace Sharpduino.Library.Base.Handlers
 {
-
-/*Query Firmware Name and Version
-Query Firmware Name and Version
-0  START_MESSAGE (0xF0)
-1  queryFirmware (0x79)
-2  END_SYSEX (0xF7)
-*/
     /// <summary>
     /// Class that handles the receipt of the firmware sysex message
     /// The firmware name to be reported should be exactly the same as the name of the Arduino file, minus the .pde. So for Standard_Firmata.pde, the firmware name is: Standard_Firmata.
@@ -27,30 +17,31 @@ Query Firmware Name and Version
     /// x  ...for as many bytes as it needs)
     /// 6  END_SYSEX (0xF7)
     /// </summary>
-    public class SysexFirmwareMessageHandler : BaseMessageHandler
+    public class SysexFirmwareMessageHandler : SysexMessageHandler<SysexFirmwareMessage>
     {
-        public const byte QUERY_FIRMWARE = 0x79;
-        public const byte END_SYSEX = 0xF7;
+        public const byte CommandByte = 0x79;
+
+        protected new const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid SysexFirmwareMessage. ";
 
         private enum HandlerState
         {
-            StartSysex = 0,
+            StartEnd,
+            StartSysex,
             QueryFirmware,
             MajorVersion,
             MinorVersion,
-            FirmwareName,
-            EndStart
+            FirmwareName
         }
 
         private HandlerState currentHandlerState;
-        private SysexFirmwareMessage sysexFirmwareMessage;
-        private int currentByteCount;
 
         public SysexFirmwareMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
+        {}
+
+        protected override void ResetHandlerState()
         {
-            currentHandlerState = HandlerState.EndStart;
-            currentByteCount = 0;
-            START_MESSAGE = 0xF0;        
+            base.ResetHandlerState();
+            currentHandlerState = HandlerState.StartEnd;
         }
 
         /// <summary>
@@ -63,72 +54,64 @@ Query Firmware Name and Version
             switch (currentHandlerState)
             {
                 case HandlerState.StartSysex:
-                    return firstByte == 0x79;
+                    return firstByte == CommandByte;
                 case HandlerState.QueryFirmware:
                 case HandlerState.MajorVersion:
                 case HandlerState.MinorVersion:
                 case HandlerState.FirmwareName:
                     return true;
-                case HandlerState.EndStart:
-                    return firstByte == 0xF0;
+                case HandlerState.StartEnd:
+                    return firstByte == START_MESSAGE;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        /// <summary>
-        /// Handle the byte that came from the communication port
-        /// </summary>
-        /// <param name="messageByte">The byte that came from the port. It might be the first one, or a subsequent one</param>
-        /// <returns>True if it should handle the next byte too</returns>
-        public override bool Handle(byte messageByte)
+        protected override bool HandleByte(byte messageByte)
         {
-            if (!CanHandle(messageByte))
-            {
-                // Reset the state of the handler
-                currentHandlerState = HandlerState.EndStart;
-                throw new MessageHandlerException("Error with the incoming byte. This is not a valid SysexMessage");
-            }
-
-            if (++currentByteCount > MAXDATABYTES)
-            {
-                // Reset the state of the handler
-                currentHandlerState = HandlerState.EndStart;
-                throw new MessageHandlerException("Error with the incoming byte. This is not a valid SysexMessage. Max message length was exceeded.");
-            }
-
             switch (currentHandlerState)
             {
+                case HandlerState.StartEnd:
+                    currentHandlerState = HandlerState.StartSysex;
+                    return true;
                 case HandlerState.StartSysex:
                     // MAX_DATA bytes AFTER the command byte
                     currentByteCount = 0;
                     currentHandlerState = HandlerState.QueryFirmware;
                     return true;
                 case HandlerState.QueryFirmware:
+                    if (messageByte > 127)
+                    {
+                        currentHandlerState = HandlerState.StartEnd;
+                        throw new MessageHandlerException(BaseExceptionMessage + "Major Version should be < 128");
+                    }
                     currentHandlerState = HandlerState.MajorVersion;
-                    sysexFirmwareMessage.MajorVersion = messageByte;
+                    message.MajorVersion = messageByte;
                     return true;
                 case HandlerState.MajorVersion:
+                    if (messageByte > 127)
+                    {
+                        currentHandlerState = HandlerState.StartEnd;
+                        throw new MessageHandlerException(BaseExceptionMessage + "Minor Version should be < 128");
+                    }
                     currentHandlerState = HandlerState.MinorVersion;
-                    sysexFirmwareMessage.MinorVersion = messageByte;
+                    message.MinorVersion = messageByte;
                     return true;
                 case HandlerState.MinorVersion:
                     currentHandlerState = HandlerState.FirmwareName;
-                    sysexFirmwareMessage.FirmwareName += Convert.ToChar(messageByte);
+                    HandleChar(messageByte);
                     return true;
                 case HandlerState.FirmwareName:
                     if (messageByte == 0xF7)
                     {
-                        currentHandlerState = HandlerState.EndStart;
-                        messageBroker.CreateEvent(sysexFirmwareMessage);
+                        currentHandlerState = HandlerState.StartEnd;
+                        // Get the string we have been building all along
+                        message.FirmwareName = firmwareName.ToString();
+                        messageBroker.CreateEvent(message);
                         return false;
                     }
-                    sysexFirmwareMessage.FirmwareName += Convert.ToChar(messageByte);
-                    return true;
-                case HandlerState.EndStart:
-                    currentHandlerState = HandlerState.StartSysex;
-                    sysexFirmwareMessage = new SysexFirmwareMessage{FirmwareName = ""};
-                    return true;
+                    HandleChar(messageByte);
+                    return true;                
                 default:
                     throw new MessageHandlerException("Unknown SysexMessage handler state");
             }

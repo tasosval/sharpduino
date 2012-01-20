@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Sharpduino.Library.Base.Messages
 {
-    public struct AnalogMessage
+    public class AnalogMessage
     {
         public int Pin { get; set; }
         public int Value { get; set; }

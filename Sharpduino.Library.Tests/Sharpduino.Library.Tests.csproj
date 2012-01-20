@@ -57,9 +57,13 @@
     <Compile Include="BitHelperTest.cs" />
     <Compile Include="Handlers\AnalogMessageHandlerTest.cs" />
     <Compile Include="Handlers\BaseMessageHandlerTest.cs" />
+    <Compile Include="Handlers\ProtocolVersionMessageHandlerTest.cs" />
+    <Compile Include="Handlers\SysexStringMessageHandler.cs" />
+    <Compile Include="LiveTests\Handlers\LiveBaseMessageHandlerTest.cs" />
+    <Compile Include="LiveTests\Handlers\ProtocolVersionMessageHandlerTest.cs" />
     <Compile Include="MessageBrokerTest.cs" />
-    <Compile Include="Handlers\SysexMessageHandlerTest.cs" />
-    <Compile Include="LiveTests\Handlers\SysexMessageHandlerTest.cs" />
+    <Compile Include="Handlers\SysexFirmwareMessageHandlerTest.cs" />
+    <Compile Include="LiveTests\Handlers\LiveSysexFirmwareMessageHandlerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Handlers\DigitalMessageHandlerTest.cs" />
   </ItemGroup>
