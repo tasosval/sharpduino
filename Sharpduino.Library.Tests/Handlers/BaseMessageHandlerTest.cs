@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 
 namespace Sharpduino.Library.Tests
@@ -38,6 +39,21 @@ namespace Sharpduino.Library.Tests
                     Assert.IsFalse(handler.CanHandle(i));
                 else
                     Assert.IsTrue(handler.CanHandle(i));
+            }
+        }
+
+        /// <summary>
+        /// This method checks to see if the handler throws exceptions when forced other messages
+        /// Override with the TestAttribute and a call to base.Throws_Error_If_Forced_Other_Message() to use it
+        /// </summary>
+        public virtual void Throws_Error_If_Forced_Other_Message()
+        {
+            for (byte i = 0; i < byte.MaxValue; i++)
+            {
+                if ((i & BaseMessageHandler.MESSAGETYPEMASK) != handler.START_MESSAGE)
+                    Assert.Throws<MessageHandlerException>(() => handler.Handle(i));
+                else
+                    Assert.DoesNotThrow(() => handler.Handle(i));
             }
         }
     }

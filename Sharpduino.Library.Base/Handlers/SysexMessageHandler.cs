@@ -8,7 +8,7 @@ namespace Sharpduino.Library.Base.Handlers
         protected StringBuilder firmwareName;
         protected int  currentByteCount;
         protected byte cacheChar;
-        public const byte END_SYSEX = 0xF7;
+        public readonly byte END_SYSEX = 0xF7;
 
         protected SysexMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {

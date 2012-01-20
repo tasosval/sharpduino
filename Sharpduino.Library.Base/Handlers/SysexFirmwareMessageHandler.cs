@@ -19,7 +19,7 @@ namespace Sharpduino.Library.Base.Handlers
     /// </summary>
     public class SysexFirmwareMessageHandler : SysexMessageHandler<SysexFirmwareMessage>
     {
-        public const byte CommandByte = 0x79;
+        public readonly byte CommandByte = 0x79;
 
         protected new const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid SysexFirmwareMessage. ";
 

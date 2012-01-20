@@ -7,7 +7,7 @@ namespace Sharpduino.Library.Base.Handlers
     public class SysexStringMessageHandler : SysexMessageHandler<SysexStringMessage>
     {
         private HandlerState currentHandlerState;
-        public const byte CommandByte = 0x70;
+        public readonly byte CommandByte = 0x70;
         protected new const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid SysexStringMessage. ";
 
         private enum HandlerState
@@ -57,10 +57,10 @@ namespace Sharpduino.Library.Base.Handlers
                 case HandlerState.String:
                     if (messageByte == 0xF7)
                     {
-                        currentHandlerState = HandlerState.StartEnd;
                         // Get the string we have been building all along
                         message.Message = firmwareName.ToString();
                         messageBroker.CreateEvent(message);
+                        ResetHandlerState();
                         return false;
                     }
                     HandleChar(messageByte);

@@ -20,7 +20,7 @@ namespace Sharpduino.Library.Tests.Handlers
 			
 
 			message[0] = handler.START_MESSAGE;
-			message[1] = SysexFirmwareMessageHandler.CommandByte;
+			message[1] = handler.CommandByte;
 			message[2] = 2; // Major version
 			message[3] = 3; // Minor version
 
@@ -31,7 +31,7 @@ namespace Sharpduino.Library.Tests.Handlers
 				message[4 + 2*i] = lsb;
 				message[4 + 2*i + 1] = msb;
 			}
-			message[message.Length-1] = SysexFirmwareMessageHandler.END_SYSEX;
+			message[message.Length-1] = handler.END_SYSEX;
 			
 			return message;
 		}
@@ -74,7 +74,7 @@ namespace Sharpduino.Library.Tests.Handlers
 		[Test]
 		public void Failed_Sysex_Message_With_Wrong_Command_Byte()
 		{
-			messageBytes[1] = SysexFirmwareMessageHandler.END_SYSEX;
+			messageBytes[1] = handler.END_SYSEX;
 
 			// Give the first byte correctly
 			Assert.IsTrue(handler.CanHandle(messageBytes[0]));
