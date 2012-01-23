@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
@@ -17,9 +18,7 @@ namespace Sharpduino.Library.Tests.Handlers
 
         private byte[] CreateMessageBytes()
         {
-            const string name = "TEST";
-            var message = new byte[5 + name.Length * 2];
-
+            var message = new byte[5 + stringMessage.Length * 2];
 
             message[0] = handler.START_MESSAGE;
             message[1] = SysexCommands.STRING_DATA;
@@ -68,7 +67,7 @@ namespace Sharpduino.Library.Tests.Handlers
                 handler.Handle(messageBytes[i]);
 
             mockBroker.Verify(p => p.CreateEvent(It.Is<SysexStringMessage>(
-                mes => mes.Message == stringMessage)), Times.Once());
+                mes => mes.Message.Equals(stringMessage,StringComparison.InvariantCultureIgnoreCase))), Times.Once());
         }
 
         [Test]
