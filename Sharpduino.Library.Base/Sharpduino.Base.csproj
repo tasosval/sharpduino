@@ -47,7 +47,6 @@
     <Compile Include="Constants\PinModes.cs" />
     <Compile Include="Constants\SysexCommands.cs" />
     <Compile Include="Exceptions\MessageHandlerException.cs" />
-    <Compile Include="Extensions.cs" />
     <Compile Include="FirmataEmptyBase.cs" />
     <Compile Include="Handlers\AnalogMappingMessageHandler.cs" />
     <Compile Include="Handlers\AnalogMessageHandler.cs" />

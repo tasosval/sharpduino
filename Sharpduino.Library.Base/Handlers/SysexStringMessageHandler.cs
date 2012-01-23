@@ -8,7 +8,7 @@ namespace Sharpduino.Library.Base.Handlers
     public class SysexStringMessageHandler : SysexMessageHandler<SysexStringMessage>
     {
         private HandlerState currentHandlerState;
-        public const byte CommandByte = 0x70;
+        public const byte CommandByte = SysexCommands.STRING_DATA;
         protected new const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid SysexStringMessage. ";
 
         private enum HandlerState

@@ -51,7 +51,7 @@ namespace Sharpduino.Library.Tests
         {
             for (byte i = 0; i < byte.MaxValue; i++)
             {
-                if ((i & BaseMessageHandler.MESSAGETYPEMASK) != handler.START_MESSAGE)
+                if ((i & MessageConstants.MESSAGETYPEMASK) != handler.START_MESSAGE)
                     Assert.Throws<MessageHandlerException>(() => handler.Handle(i));
                 else
                     Assert.DoesNotThrow(() => handler.Handle(i));
