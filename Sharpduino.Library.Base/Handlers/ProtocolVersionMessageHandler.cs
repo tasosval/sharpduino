@@ -10,7 +10,7 @@ namespace Sharpduino.Library.Base.Handlers
     public class ProtocolVersionMessageHandler : BaseMessageHandler<ProtocolVersionMessage>
     {
         private HandlerState currentHandlerState;
-        private const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid DigitalMessage. ";
+        protected new const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid DigitalMessage. ";
 
         private enum HandlerState
         {
@@ -21,8 +21,12 @@ namespace Sharpduino.Library.Base.Handlers
 
         public ProtocolVersionMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {
-            currentHandlerState = HandlerState.StartEnd;
             START_MESSAGE = 0xF9;
+        }
+
+        protected override void OnResetHandlerState()
+        {
+            currentHandlerState = HandlerState.StartEnd;
         }
 
         public override bool CanHandle(byte firstByte)
@@ -44,15 +48,13 @@ namespace Sharpduino.Library.Base.Handlers
 
             if (!CanHandle(messageByte))
             {
-                // Reset the state of the handler
-                currentHandlerState = HandlerState.StartEnd;
+                ResetHandlerState();
                 throw new MessageHandlerException(BaseExceptionMessage);
             }
 
             switch (currentHandlerState)
             {
                 case HandlerState.StartEnd:
-                    message = new ProtocolVersionMessage();
                     currentHandlerState = HandlerState.MajorVersion;
                     return true;
                 case HandlerState.MajorVersion:
@@ -72,7 +74,7 @@ namespace Sharpduino.Library.Base.Handlers
                     }
                     message.MinorVersion = messageByte;
                     messageBroker.CreateEvent(message);
-                    currentHandlerState = HandlerState.StartEnd;
+                    ResetHandlerState();
                     return false;
                 default:
                     throw new ArgumentOutOfRangeException();

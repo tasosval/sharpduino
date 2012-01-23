@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpduino.Library.Base", "Sharpduino.Library.Base\Sharpduino.Library.Base.csproj", "{99803926-2DF8-4FCE-8821-51432406288E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpduino.Base", "Sharpduino.Library.Base\Sharpduino.Base.csproj", "{99803926-2DF8-4FCE-8821-51432406288E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpduino.Library.Tests", "Sharpduino.Library.Tests\Sharpduino.Library.Tests.csproj", "{8B8BF7AB-BAD4-41D3-8D1A-C47D6814088A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpduino.Tests", "Sharpduino.Library.Tests\Sharpduino.Tests.csproj", "{8B8BF7AB-BAD4-41D3-8D1A-C47D6814088A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

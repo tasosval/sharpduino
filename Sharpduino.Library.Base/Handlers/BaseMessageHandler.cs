@@ -8,25 +8,26 @@ namespace Sharpduino.Library.Base.Handlers
     public abstract class BaseMessageHandler<T> : BaseMessageHandler where T : new()
     {
         protected BaseMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
-        {}
+        {
+            ResetHandlerState();
+        }
 
         /// <summary>
         /// The message that will be emited from the handler
         /// </summary>
         protected T message;
+
+        protected virtual void ResetHandlerState()
+        {
+            message = new T();           
+            OnResetHandlerState();
+        }
     }
 
     public abstract class BaseMessageHandler : IMessageHandler
     {
         protected readonly IMessageBroker messageBroker;
         protected const string BaseExceptionMessage = "Error with the incoming byte.";
-
-        public const int MAXANALOGPINS = 16;
-        public const int MAXDIGITALPORTS = 16;
-        public const int MAXDIGITALPINS = 128;
-        public const int MAXDATABYTES = 1024;
-        public const byte MESSAGETYPEMASK = 0xF0;
-        public const byte MESSAGEPINMASK = 0x0F;
 
         /// <summary>
         /// The START_MESSAGE byte for the current handler
@@ -38,6 +39,8 @@ namespace Sharpduino.Library.Base.Handlers
         {
             this.messageBroker = messageBroker;
         }
+
+        protected abstract void OnResetHandlerState();
 
         /// <summary>
         /// Find out if the handler can handle the next byte

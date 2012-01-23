@@ -1,4 +1,5 @@
 ﻿using System;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages;
 
@@ -20,16 +21,20 @@ namespace Sharpduino.Library.Base.Handlers
 
 		public AnalogMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
 		{
-			currentHandlerState = HandlerState.StartEnd;
 			START_MESSAGE = 0xE0;
 		}
 
-		public override bool CanHandle(byte firstByte)
+	    protected override void OnResetHandlerState()
+        {
+            currentHandlerState = HandlerState.StartEnd;
+	    }
+
+	    public override bool CanHandle(byte firstByte)
 		{
 			switch (currentHandlerState)
 			{
 				case HandlerState.StartEnd:
-					return (firstByte & MESSAGETYPEMASK) == START_MESSAGE;
+                    return (firstByte & MessageConstants.MESSAGETYPEMASK) == START_MESSAGE;
 				case HandlerState.LSB:
 				case HandlerState.MSB:
 					return true;
@@ -42,16 +47,14 @@ namespace Sharpduino.Library.Base.Handlers
 		{
 			if (!CanHandle(messageByte))
 			{
-				// Reset the state of the handler
-				currentHandlerState = HandlerState.StartEnd;
+				ResetHandlerState();
 				throw new MessageHandlerException("Error with the incoming byte. This is not a valid AnalogMessage");
 			}
 
 			switch (currentHandlerState)
 			{
 				case HandlerState.StartEnd:
-					message = new AnalogMessage();
-					message.Pin = messageByte & MESSAGEPINMASK;
+                    message.Pin = messageByte & MessageConstants.MESSAGEPINMASK;
 					currentHandlerState = HandlerState.LSB;
 					return true;
 				case HandlerState.LSB:
@@ -61,7 +64,7 @@ namespace Sharpduino.Library.Base.Handlers
 				case HandlerState.MSB:
 					message.Value = BitHelper.Sevens2Fourteen(LSBCache, messageByte);
 					messageBroker.CreateEvent(message);
-					currentHandlerState = HandlerState.StartEnd;
+                    ResetHandlerState();
 					return false;
 				default:
 					throw new ArgumentOutOfRangeException();

@@ -1,4 +1,5 @@
 using System;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages;
 
@@ -19,16 +20,20 @@ namespace Sharpduino.Library.Base.Handlers
 
 		public DigitalMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
 		{
-			currentHandlerState = HandlerState.StartEnd;
 			START_MESSAGE = 0x90;
 		}
 
-		public override bool CanHandle(byte firstByte)
+	    protected override void OnResetHandlerState()
+	    {
+            currentHandlerState = HandlerState.StartEnd;
+	    }
+
+	    public override bool CanHandle(byte firstByte)
 		{
 			switch (currentHandlerState)
 			{
 				case HandlerState.StartEnd:
-					return (firstByte & MESSAGETYPEMASK) == START_MESSAGE;
+					return (firstByte & MessageConstants.MESSAGETYPEMASK) == START_MESSAGE;
 				case HandlerState.LSB:
 				case HandlerState.MSB:
 					return true;
@@ -41,16 +46,14 @@ namespace Sharpduino.Library.Base.Handlers
 		{
 			if (!CanHandle(messageByte))
 			{
-				// Reset the state of the handler
-				currentHandlerState = HandlerState.StartEnd;
+				ResetHandlerState();
 				throw new MessageHandlerException("Error with the incoming byte. This is not a valid DigitalMessage");
 			}
 
 			switch (currentHandlerState)
 			{
 				case HandlerState.StartEnd:
-					message = new DigitalMessage();
-					message.Port = messageByte & MESSAGEPINMASK;
+					message.Port = messageByte & MessageConstants.MESSAGEPINMASK;
 					currentHandlerState = HandlerState.LSB;
 					return true;
 				case HandlerState.LSB:
@@ -60,7 +63,7 @@ namespace Sharpduino.Library.Base.Handlers
 				case HandlerState.MSB:
 					message.PinStates = BitHelper.PortVal2PinVals((byte) BitHelper.Sevens2Fourteen(LSBCache, messageByte));
 					messageBroker.CreateEvent(message);
-					currentHandlerState = HandlerState.StartEnd;
+					ResetHandlerState();
 					return false;
 				default:
 					throw new ArgumentOutOfRangeException();

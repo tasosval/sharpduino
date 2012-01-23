@@ -1,4 +1,5 @@
 ﻿using System;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages;
 
@@ -19,7 +20,7 @@ namespace Sharpduino.Library.Base.Handlers
     /// </summary>
     public class SysexFirmwareMessageHandler : SysexMessageHandler<SysexFirmwareMessage>
     {
-        public const byte CommandByte = 0x79;
+        private const byte CommandByte = Constants.SysexCommands.QUERY_FIRMWARE;
 
         protected new const string BaseExceptionMessage = "Error with the incoming byte. This is not a valid SysexFirmwareMessage. ";
 
@@ -38,9 +39,8 @@ namespace Sharpduino.Library.Base.Handlers
         public SysexFirmwareMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {}
 
-        protected override void ResetHandlerState()
+        protected override void OnResetHandlerState()
         {
-            base.ResetHandlerState();
             currentHandlerState = HandlerState.StartEnd;
         }
 
@@ -102,12 +102,12 @@ namespace Sharpduino.Library.Base.Handlers
                     HandleChar(messageByte);
                     return true;
                 case HandlerState.FirmwareName:
-                    if (messageByte == 0xF7)
+                    if (messageByte == MessageConstants.SYSEX_END)
                     {
-                        currentHandlerState = HandlerState.StartEnd;
                         // Get the string we have been building all along
-                        message.FirmwareName = firmwareName.ToString();
+                        message.FirmwareName = stringBuilder.ToString();
                         messageBroker.CreateEvent(message);
+                        ResetHandlerState();                        
                         return false;
                     }
                     HandleChar(messageByte);
