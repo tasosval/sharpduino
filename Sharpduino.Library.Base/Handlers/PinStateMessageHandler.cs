@@ -60,10 +60,14 @@ namespace Sharpduino.Library.Base.Handlers
                     currentHandlerState = HandlerState.PinNo;
                     return true;
                 case HandlerState.PinNo:
+                    if ( messageByte > MessageConstants.MAX_PINS)
+                        throw new MessageHandlerException(BaseExceptionMessage + "The pin number is wrong");
                     message.PinNo = messageByte;
                     currentHandlerState = HandlerState.PinMode;
                     return true;
                 case HandlerState.PinMode:
+                    if ( messageByte >= Enum.GetValues(typeof (PinModes)).Length )
+                        throw new MessageHandlerException(BaseExceptionMessage + "This is no valid PinMode");
                     message.Mode = (PinModes) messageByte;
                     currentHandlerState = HandlerState.PinState;
                     return true;

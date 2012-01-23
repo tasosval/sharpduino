@@ -67,9 +67,9 @@ namespace Sharpduino.Library.Base.Constants
         public const int MAX_DIGITAL_PORTS = 16;
 
         /// <summary>
-        /// The maximum number of digital pins
+        /// The maximum number of pins
         /// </summary>
-        public const int MAX_DIGITAL_PINS = 128;
+        public const int MAX_PINS = 128;
         
         /// <summary>
         /// Maximum bytes in a sysex message
@@ -87,5 +87,11 @@ namespace Sharpduino.Library.Base.Constants
         /// to differentiate the pin/port
         /// </summary>
         public const byte MESSAGEPINMASK = 0x0F;
+
+        /// <summary>
+        /// This byte signifies the end of capabilities 
+        /// for a specific pin in a capability query
+        /// </summary>
+        public const byte FINISHED_PIN_CAPABILITIES = 0x7F;
     }
 }

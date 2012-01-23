@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Moq;
 using NUnit.Framework;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
@@ -81,13 +82,13 @@ namespace Sharpduino.Library.Tests.Handlers
         [Test]
         public override void Ignores_All_Other_Messages()
         {
-            for (byte i = 0; i < byte.MaxValue; i++)
-            {
-                if (i  != handler.START_MESSAGE)
-                    Assert.IsFalse(handler.CanHandle(i));
-                else
-                    Assert.IsTrue(handler.CanHandle(i));
-            }
+            base.Ignores_All_Other_Messages();
+        }
+
+        [Test]
+        public override void Throws_Error_If_Forced_Other_Message()
+        {
+            base.Throws_Error_If_Forced_Other_Message();
         }
     }
 }

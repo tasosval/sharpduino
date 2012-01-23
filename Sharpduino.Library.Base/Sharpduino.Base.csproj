@@ -62,6 +62,7 @@
     <Compile Include="IMessageBroker.cs" />
     <Compile Include="MessageBroker.cs" />
     <Compile Include="Messages\AnalogMessage.cs" />
+    <Compile Include="Messages\CapabilityMessage.cs" />
     <Compile Include="Messages\PinStateMessage.cs" />
     <Compile Include="Messages\ProtocolVersionMessage.cs" />
     <Compile Include="Messages\SysexFirmwareMessage.cs" />
