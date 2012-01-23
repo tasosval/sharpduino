@@ -2,6 +2,7 @@
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
@@ -16,10 +17,12 @@ namespace Sharpduino.Library.Tests.Handlers
 
         private byte[] CreateMessageBytes()
         {
-            var message = new byte[3 + stringMessage.Length * 2];
+            const string name = "TEST";
+            var message = new byte[5 + name.Length * 2];
+
 
             message[0] = handler.START_MESSAGE;
-            message[1] = handler.CommandByte;
+            message[1] = SysexCommands.STRING_DATA;
 
             for (int i = 0; i < stringMessage.Length; i++)
             {
@@ -28,7 +31,7 @@ namespace Sharpduino.Library.Tests.Handlers
                 message[2 + 2 * i] = lsb;
                 message[2 + 2 * i + 1] = msb;
             }
-            message[message.Length - 1] = handler.END_SYSEX;
+            message[message.Length - 1] = MessageConstants.SYSEX_END;
 
             return message;
         }
