@@ -2,6 +2,7 @@
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
@@ -20,7 +21,7 @@ namespace Sharpduino.Library.Tests.Handlers
 			
 
 			message[0] = handler.START_MESSAGE;
-			message[1] = SysexFirmwareMessageHandler.CommandByte;
+			message[1] = SysexCommands.QUERY_FIRMWARE;
 			message[2] = 2; // Major version
 			message[3] = 3; // Minor version
 
@@ -31,7 +32,7 @@ namespace Sharpduino.Library.Tests.Handlers
 				message[4 + 2*i] = lsb;
 				message[4 + 2*i + 1] = msb;
 			}
-			message[message.Length-1] = SysexFirmwareMessageHandler.END_SYSEX;
+			message[message.Length-1] = MessageConstants.SYSEX_END;
 			
 			return message;
 		}
@@ -74,7 +75,7 @@ namespace Sharpduino.Library.Tests.Handlers
 		[Test]
 		public void Failed_Sysex_Message_With_Wrong_Command_Byte()
 		{
-			messageBytes[1] = SysexFirmwareMessageHandler.END_SYSEX;
+			messageBytes[1] = MessageConstants.SYSEX_END;
 
 			// Give the first byte correctly
 			Assert.IsTrue(handler.CanHandle(messageBytes[0]));
@@ -92,7 +93,7 @@ namespace Sharpduino.Library.Tests.Handlers
 		public void Failed_Sysex_Message_With_Exceeded_Bytecount()
 		{
 			int clamp = 0;
-			for (int i = 0; i < BaseMessageHandler.MAXDATABYTES+2; i++)
+            for (int i = 0; i < MessageConstants.MAX_DATA_BYTES + 2; i++)
 			{
 				clamp = i > 1 ? 2 : i;
 				Assert.IsTrue(handler.CanHandle(messageBytes[clamp]));

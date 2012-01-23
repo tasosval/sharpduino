@@ -2,6 +2,7 @@
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
@@ -20,18 +21,16 @@ namespace Sharpduino.Library.Tests.Handlers
 
 
             message[0] = handler.START_MESSAGE;
-            message[1] = SysexFirmwareMessageHandler.CommandByte;
-            message[2] = 2; // Major version
-            message[3] = 3; // Minor version
+            message[1] = SysexCommands.STRING_DATA;
 
             for (int i = 0; i < name.Length; i++)
             {
                 byte lsb, msb;
                 BitHelper.Fourteen2Sevens(name[i], out lsb, out msb);
-                message[4 + 2 * i] = lsb;
-                message[4 + 2 * i + 1] = msb;
+                message[2 + 2 * i] = lsb;
+                message[2 + 2 * i + 1] = msb;
             }
-            message[message.Length - 1] = SysexFirmwareMessageHandler.END_SYSEX;
+            message[message.Length - 1] = MessageConstants.SYSEX_END;
 
             return message;
         }

@@ -43,13 +43,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitHelper.cs" />
+    <Compile Include="Constants\MessageConstants.cs" />
     <Compile Include="Constants\PinModes.cs" />
+    <Compile Include="Constants\SysexCommands.cs" />
     <Compile Include="Exceptions\MessageHandlerException.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FirmataEmptyBase.cs" />
+    <Compile Include="Handlers\AnalogMappingMessageHandler.cs" />
     <Compile Include="Handlers\AnalogMessageHandler.cs" />
     <Compile Include="Handlers\BaseMessageHandler.cs" />
+    <Compile Include="Handlers\CapabilityMessageHandler.cs" />
     <Compile Include="Handlers\IMessageHandler.cs" />
+    <Compile Include="Handlers\PinStateMessageHandler.cs" />
     <Compile Include="Handlers\ProtocolVersionMessageHandler.cs" />
     <Compile Include="Handlers\SysexFirmwareMessageHandler.cs" />
     <Compile Include="Handlers\SysexMessageHandler.cs" />
@@ -58,6 +63,7 @@
     <Compile Include="IMessageBroker.cs" />
     <Compile Include="MessageBroker.cs" />
     <Compile Include="Messages\AnalogMessage.cs" />
+    <Compile Include="Messages\PinStateMessage.cs" />
     <Compile Include="Messages\ProtocolVersionMessage.cs" />
     <Compile Include="Messages\SysexFirmwareMessage.cs" />
     <Compile Include="Messages\SysexStringMessage.cs" />

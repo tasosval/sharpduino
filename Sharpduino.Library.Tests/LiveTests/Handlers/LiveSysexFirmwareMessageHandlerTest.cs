@@ -7,6 +7,7 @@ using System.Threading;
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
 
@@ -28,7 +29,7 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
                 1  queryFirmware (0x79)
                 2  END_SYSEX (0xF7)
              */
-            port.Write(new byte[]{handler.START_MESSAGE,SysexFirmwareMessageHandler.CommandByte,SysexFirmwareMessageHandler.END_SYSEX},0,3);
+            port.Write(new byte[]{handler.START_MESSAGE,SysexCommands.QUERY_FIRMWARE,MessageConstants.SYSEX_END},0,3);
 
             // Wait for the arduino to reply
             Thread.Sleep(100);

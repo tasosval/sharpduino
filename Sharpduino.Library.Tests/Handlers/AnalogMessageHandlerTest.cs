@@ -3,6 +3,7 @@ using System.Linq;
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
@@ -44,7 +45,7 @@ namespace Sharpduino.Library.Tests.Handlers
             mockBroker.Verify(
                 p => p.CreateEvent(
                     It.Is<AnalogMessage>(
-                    mes => mes.Pin == (bytes[0] & AnalogMessageHandler.MESSAGEPINMASK) && 
+                    mes => mes.Pin == (bytes[0] & MessageConstants.MESSAGEPINMASK) && 
 					mes.Value == BitHelper.Sevens2Fourteen(bytes[1],bytes[2]))),Times.Once());
         }
 
