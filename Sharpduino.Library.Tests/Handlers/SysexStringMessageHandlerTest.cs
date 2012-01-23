@@ -90,27 +90,16 @@ namespace Sharpduino.Library.Tests.Handlers
             Assert.IsTrue(handler.CanHandle(messageBytes[0]));
         }
 
+        [Test]
         public override void Throws_Error_If_Forced_Other_Message()
         {
-            for (byte i = 0; i < byte.MaxValue; i++)
-            {
-                if (i != handler.START_MESSAGE)
-                    Assert.Throws<MessageHandlerException>(() => handler.Handle(i));
-                else
-                    Assert.DoesNotThrow(() => handler.Handle(i));
-            }
+            base.Throws_Error_If_Forced_Other_Message();
         }
 
         [Test]
         public override void Ignores_All_Other_Messages()
         {
-            for (byte i = 0; i < byte.MaxValue; i++)
-            {
-                if (i != handler.START_MESSAGE)
-                    Assert.IsFalse(handler.CanHandle(i));
-                else
-                    Assert.IsTrue(handler.CanHandle(i));
-            }
+            base.Ignores_All_Other_Messages();
         }
     }
 }
