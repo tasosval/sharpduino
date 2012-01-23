@@ -55,10 +55,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitHelperTest.cs" />
+    <Compile Include="Handlers\AnalogMappingMessageHandlerTest.cs" />
     <Compile Include="Handlers\AnalogMessageHandlerTest.cs" />
     <Compile Include="Handlers\BaseMessageHandlerTest.cs" />
+    <Compile Include="Handlers\CapabilityMessageHandler.cs" />
+    <Compile Include="Handlers\PinStateMessageHandlerTest.cs" />
     <Compile Include="Handlers\ProtocolVersionMessageHandlerTest.cs" />
-    <Compile Include="Handlers\SysexStringMessageHandler.cs" />
+    <Compile Include="Handlers\SysexStringMessageHandlerTest.cs" />
     <Compile Include="LiveTests\Handlers\LiveBaseMessageHandlerTest.cs" />
     <Compile Include="LiveTests\Handlers\ProtocolVersionMessageHandlerTest.cs" />
     <Compile Include="MessageBrokerTest.cs" />
@@ -71,9 +74,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sharpduino.Library.Base\Sharpduino.Library.Base.csproj">
+    <ProjectReference Include="..\Sharpduino.Library.Base\Sharpduino.Base.csproj">
       <Project>{99803926-2DF8-4FCE-8821-51432406288E}</Project>
-      <Name>Sharpduino.Library.Base</Name>
+      <Name>Sharpduino.Base</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

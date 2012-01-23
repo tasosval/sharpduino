@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 
@@ -35,7 +36,7 @@ namespace Sharpduino.Library.Tests
         {
             for (byte i = 0; i < byte.MaxValue; i++)
             {
-                if ((i & BaseMessageHandler.MESSAGETYPEMASK) != handler.START_MESSAGE)
+                if ((i & MessageConstants.MESSAGETYPEMASK) != handler.START_MESSAGE)
                     Assert.IsFalse(handler.CanHandle(i));
                 else
                     Assert.IsTrue(handler.CanHandle(i));

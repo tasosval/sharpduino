@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using Moq;
 using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages;
@@ -41,7 +42,7 @@ namespace Sharpduino.Library.Tests.Handlers
 		    Assert.IsFalse(handler.Handle(bytes.Last()));
 
             mockBroker.Verify(p => p.CreateEvent(It.Is<DigitalMessage>(mes =>
-                mes.Port == (bytes[0] & BaseMessageHandler.MESSAGEPINMASK) &&
+                mes.Port == (bytes[0] & MessageConstants.MESSAGEPINMASK) &&
                 mes.PinStates.SequenceEqual(BitHelper.PortVal2PinVals((byte) BitHelper.Sevens2Fourteen(bytes[1],bytes[2]))))),
                 Times.Once());
 
@@ -61,7 +62,7 @@ namespace Sharpduino.Library.Tests.Handlers
         {
             for (byte i = 0; i < byte.MaxValue; i++)
             {
-                if ((i & BaseMessageHandler.MESSAGETYPEMASK) != handler.START_MESSAGE)
+                if ((i & MessageConstants.MESSAGETYPEMASK) != handler.START_MESSAGE)
                     Assert.Throws<MessageHandlerException>(() => handler.Handle(i));
             }
         }
