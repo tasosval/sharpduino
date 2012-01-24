@@ -8,13 +8,16 @@ namespace Sharpduino.Library.Base.Messages
 {
     public class CapabilityMessage
     {
-        public List<PinModes> SupportedModes { get; private set; }
+        /// <summary>
+        /// This is a dictionary of the supported modes as keys
+        /// which point to the appropriate resolutions
+        /// </summary>
+        public Dictionary<PinModes,int> Modes { get; private set; }
         public byte PinNo { get; set; }
-        public byte Resolution { get; set; }
 
         public CapabilityMessage()
         {
-            SupportedModes = new List<PinModes>();
+            Modes = new Dictionary<PinModes, int>();
         }
     }
 }
