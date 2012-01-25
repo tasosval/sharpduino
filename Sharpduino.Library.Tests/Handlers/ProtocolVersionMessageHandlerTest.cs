@@ -78,17 +78,5 @@ namespace Sharpduino.Library.Tests.Handlers
             // Check to see if the handler has reset
             Assert.IsTrue(handler.CanHandle(bytes[0]));
         }
-
-        [Test]
-        public override void Ignores_All_Other_Messages()
-        {
-            base.Ignores_All_Other_Messages();
-        }
-
-        [Test]
-        public override void Throws_Error_If_Forced_Other_Message()
-        {
-            base.Throws_Error_If_Forced_Other_Message();
-        }
     }
 }

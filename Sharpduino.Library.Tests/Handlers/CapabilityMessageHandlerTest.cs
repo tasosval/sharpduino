@@ -13,24 +13,25 @@ using Sharpduino.Library.Base.Messages;
 namespace Sharpduino.Library.Tests.Handlers
 {
     [TestFixture]
-    public class CapabilityMessageHandlerTest : BaseMessageHandlerTest<CapabilityMessageHandler>
+    public class CapabilityMessageHandlerTest : BaseSysexMessageHandlerTest<CapabilityMessageHandler>
     {
-        private readonly byte[] sampleCapabilityBytes = new byte[] {0x14, 0x76, 0x02};
-
         private byte[] CreateMessageBytes(params byte[] capabilityBytes)
         {
             var bytes = new List<byte>
                             {
-                                MessageConstants.SYSEX_START,
-                                // Start message
-                                SysexCommands.CAPABILITY_RESPONSE,
-                                // Message Type                
+                                MessageConstants.SYSEX_START, // Start message
+                                SysexCommands.CAPABILITY_RESPONSE, // Message Type                
                             };
 
             bytes.AddRange(capabilityBytes);
             bytes.Add(MessageConstants.SYSEX_END);
 
             return bytes.ToArray();
+        }
+
+        protected override byte SysexCommandByte
+        {
+            get { return SysexCommands.CAPABILITY_RESPONSE; }
         }
 
         protected override CapabilityMessageHandler CreateHandler()
@@ -106,18 +107,6 @@ namespace Sharpduino.Library.Tests.Handlers
                     mes => mes.PinNo == 1 &&
                            mes.Modes.Keys.Contains(PinModes.Analog) && mes.Modes[PinModes.Analog] == 10
                     )), Times.Once());
-        }
-
-        [Test]
-        public override void Ignores_All_Other_Messages()
-        {
-            base.Ignores_All_Other_Messages();
-        }
-
-        [Test]
-        public override void Throws_Error_If_Forced_Other_Message()
-        {
-            base.Throws_Error_If_Forced_Other_Message();
         }
 
         private static object[] Cases = {

@@ -11,7 +11,7 @@ using Sharpduino.Library.Base.Messages;
 namespace Sharpduino.Library.Tests.Handlers
 {
     [TestFixture]
-    public class SysexStringMessageHandlerTest : BaseMessageHandlerTest<SysexStringMessageHandler>
+    public class SysexStringMessageHandlerTest : BaseSysexMessageHandlerTest<SysexStringMessageHandler>
     {
         byte[] messageBytes;
         readonly string stringMessage = "TEST";
@@ -33,6 +33,11 @@ namespace Sharpduino.Library.Tests.Handlers
             message[message.Length - 1] = MessageConstants.SYSEX_END;
 
             return message;
+        }
+
+        protected override byte SysexCommandByte
+        {
+            get { return SysexCommands.STRING_DATA; }
         }
 
         protected override SysexStringMessageHandler CreateHandler()
@@ -88,18 +93,6 @@ namespace Sharpduino.Library.Tests.Handlers
 
             // Check to see if it resets after this exception
             Assert.IsTrue(handler.CanHandle(messageBytes[0]));
-        }
-
-        [Test]
-        public override void Throws_Error_If_Forced_Other_Message()
-        {
-            base.Throws_Error_If_Forced_Other_Message();
-        }
-
-        [Test]
-        public override void Ignores_All_Other_Messages()
-        {
-            base.Ignores_All_Other_Messages();
         }
     }
 }

@@ -59,6 +59,7 @@
     <Compile Include="Handlers\AnalogMessageHandlerTest.cs" />
     <Compile Include="Handlers\BaseMessageHandlerTest.cs" />
     <Compile Include="Handlers\CapabilityMessageHandlerTest.cs" />
+    <Compile Include="Handlers\I2CMessageHandlerTest.cs" />
     <Compile Include="Handlers\PinStateMessageHandlerTest.cs" />
     <Compile Include="Handlers\ProtocolVersionMessageHandlerTest.cs" />
     <Compile Include="Handlers\SysexStringMessageHandlerTest.cs" />
