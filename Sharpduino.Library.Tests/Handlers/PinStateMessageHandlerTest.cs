@@ -13,7 +13,7 @@ using Sharpduino.Library.Base.Messages;
 namespace Sharpduino.Library.Tests.Handlers
 {
     [TestFixture]
-    public class PinStateMessageHandlerTest : BaseMessageHandlerTest<PinStateMessageHandler>
+    public class PinStateMessageHandlerTest : BaseSysexMessageHandlerTest<PinStateMessageHandler>
     {
         private readonly byte[] sampleStateBytes = new byte[]{0x14,0x76,0x02};
 
@@ -31,6 +31,11 @@ namespace Sharpduino.Library.Tests.Handlers
             bytes.Add(MessageConstants.SYSEX_END);
 
             return bytes.ToArray();
+        }
+
+        protected override byte SysexCommandByte
+        {
+            get { return SysexCommands.PIN_STATE_RESPONSE; }
         }
 
         protected override PinStateMessageHandler CreateHandler()
@@ -118,18 +123,6 @@ namespace Sharpduino.Library.Tests.Handlers
             }
 
             Assert.Throws<MessageHandlerException>(() => handler.Handle(bytes[4]));
-        }
-
-        [Test]
-        public override void Ignores_All_Other_Messages()
-        {
-            base.Ignores_All_Other_Messages();
-        }
-
-        [Test]
-        public override void Throws_Error_If_Forced_Other_Message()
-        {
-            base.Throws_Error_If_Forced_Other_Message();
         }
     }
 }

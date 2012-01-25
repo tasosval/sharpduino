@@ -10,7 +10,7 @@ using Sharpduino.Library.Base.Messages;
 namespace Sharpduino.Library.Tests.Handlers
 {
 	[TestFixture]
-	public class SysexFirmwareMessageHandlerTest : BaseMessageHandlerTest<SysexFirmwareMessageHandler>
+	public class SysexFirmwareMessageHandlerTest : BaseSysexMessageHandlerTest<SysexFirmwareMessageHandler>
 	{
 		byte[] messageBytes;
 		
@@ -47,6 +47,11 @@ namespace Sharpduino.Library.Tests.Handlers
 			base.SetupEachTest();
 			messageBytes = CreateMessageBytes();
 		}
+
+        protected override byte SysexCommandByte
+        {
+            get { return SysexCommands.QUERY_FIRMWARE; }
+        }
 
 		[Test]
 		public void Successfull_Sysex_Message()
@@ -137,17 +142,5 @@ namespace Sharpduino.Library.Tests.Handlers
 			Assert.IsTrue(handler.CanHandle(messageBytes[3]));
 			Assert.Throws<MessageHandlerException>(() => handler.Handle(messageBytes[3]));
 		}
-
-		[Test]
-		public override void Ignores_All_Other_Messages()
-		{
-			base.Ignores_All_Other_Messages();
-		}
-
-        [Test]
-        public override void Throws_Error_If_Forced_Other_Message()
-        {
-            base.Throws_Error_If_Forced_Other_Message();
-        }
 	}
 }
