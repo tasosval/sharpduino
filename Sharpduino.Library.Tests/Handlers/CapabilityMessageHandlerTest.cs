@@ -39,30 +39,18 @@ namespace Sharpduino.Library.Tests.Handlers
             return new CapabilityMessageHandler(mockBroker.Object);
         }
 
-        [Test, TestCaseSource(typeof(MyFactoryClass), "CasesSuccess")]
+        [Test, TestCaseSource(typeof(MyFactoryClass),"CasesSuccess")]
         public void Successful_Message(params byte[] capabilityBytes)
         {
             var bytes = CreateMessageBytes(capabilityBytes);
-
-            for (int i = 0; i < bytes.Length - 1; i++)
-            {
-                Assert.IsTrue(handler.CanHandle(bytes[i]));
-                Assert.IsTrue(handler.Handle(bytes[i]));
-            }
-
-            Assert.IsTrue(handler.CanHandle(bytes.Last()));
-            Assert.IsFalse(handler.Handle(bytes.Last()));
+            Test_Handler_Receives_Message_Successfully(bytes);
         }
 
         [Test, TestCaseSource(typeof (MyFactoryClass), "Cases")]
         public void Handler_Resets_After_Successful_Message(params byte[] capabilityBytes)
         {
             var bytes = CreateMessageBytes(capabilityBytes);
-
-            for (int i = 0; i < bytes.Length; i++)
-                handler.Handle(bytes[i]);
-
-            Assert.IsTrue(handler.CanHandle(bytes[0]));
+            Test_Handler_Resets_Successfully(bytes);
         }
 
         [Test, TestCaseSource(typeof(MyFactoryClass), "ReturnCases")]
@@ -108,21 +96,6 @@ namespace Sharpduino.Library.Tests.Handlers
                            mes.Modes.Keys.Contains(PinModes.Analog) && mes.Modes[PinModes.Analog] == 10
                     )), Times.Once());
         }
-
-        private static object[] Cases = {
-                                            new []
-                                                {
-                                                    (byte) PinModes.Input, (byte) 1, (byte) PinModes.Output, (byte) 1,
-                                                    (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES
-                                                }
-                                            ,
-                                            new []
-                                                {
-                                                    (byte) PinModes.Input, (byte) 1, (byte) PinModes.Output, (byte) 1,
-                                                    (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES,
-                                                    (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES
-                                                }
-                                        };
     }
 
     public class MyFactoryClass
@@ -137,7 +110,6 @@ namespace Sharpduino.Library.Tests.Handlers
                     .Throws(typeof(MessageHandlerException))
                     .SetName("Send Wrong PinMode")
                     .SetDescription("An exception is expected").Returns(0);
-                yield break;
             }
         }
 
@@ -156,7 +128,6 @@ namespace Sharpduino.Library.Tests.Handlers
                                      (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES,
                                      (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES
                                  }).SetName("Two Pins Simple");
-                yield break;
             }
         }
 
@@ -175,7 +146,6 @@ namespace Sharpduino.Library.Tests.Handlers
                                      (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES,
                                      (byte) PinModes.Analog, (byte) 10, MessageConstants.FINISHED_PIN_CAPABILITIES
                                  }).SetName("Two Pins Success");
-                yield break;
             }
         }
     }

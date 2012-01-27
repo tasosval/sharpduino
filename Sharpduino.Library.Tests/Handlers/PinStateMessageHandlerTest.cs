@@ -49,15 +49,7 @@ namespace Sharpduino.Library.Tests.Handlers
         public void Successful_PinState_Message(params byte[] pinStateBytes)
         {
             var bytes = CreateMessageBytes(pinStateBytes);
-
-            for (int i = 0; i < bytes.Length-1; i++)
-            {
-                Assert.IsTrue(handler.CanHandle(bytes[i]));
-                Assert.IsTrue(handler.Handle(bytes[i]));
-            }
-
-            Assert.IsTrue(handler.CanHandle(bytes.Last()));
-            Assert.IsFalse(handler.Handle(bytes.Last()));
+            Test_Handler_Receives_Message_Successfully(bytes);
         }
 
         [TestCase((byte)0x14, (byte)0x76, (byte)0x02)]
@@ -83,12 +75,7 @@ namespace Sharpduino.Library.Tests.Handlers
         public void Handler_Resets_After_Successful_Message()
         {
             var bytes = CreateMessageBytes(sampleStateBytes);
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                handler.Handle(bytes[i]);
-            }
-
-            Assert.IsTrue(handler.CanHandle(bytes[0]));
+            Test_Handler_Resets_Successfully(bytes);
         }
 
         [Test]

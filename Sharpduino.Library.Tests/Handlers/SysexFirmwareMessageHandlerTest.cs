@@ -28,7 +28,7 @@ namespace Sharpduino.Library.Tests.Handlers
 			for (int i = 0; i < name.Length; i++)
 			{
 				byte lsb, msb;
-				BitHelper.Fourteen2Sevens(name[i], out lsb, out msb);
+				BitHelper.IntToBytes(name[i], out lsb, out msb);
 				message[4 + 2*i] = lsb;
 				message[4 + 2*i + 1] = msb;
 			}
@@ -56,25 +56,28 @@ namespace Sharpduino.Library.Tests.Handlers
 		[Test]
 		public void Successfull_Sysex_Message()
 		{
-			for (int i = 0; i < messageBytes.Length-1; i++)
-			{
-				var messageByte = messageBytes[i];
-				Assert.IsTrue(handler.CanHandle(messageByte));
-				Assert.IsTrue(handler.Handle(messageByte));
-			}
+            Test_Handler_Receives_Message_Successfully(messageBytes);
+		}
 
-			Assert.IsTrue(handler.CanHandle(messageBytes.Last()));
-			Assert.IsFalse(handler.Handle(messageBytes.Last()));
+        [Test]
+        public void Handler_Resets_After_Successful_Message()
+        {
+            Test_Handler_Resets_Successfully(messageBytes);
+        }
+
+        [Test]
+        public void Raises_Event_After_Successful_Message()
+        {
+	        for (int i = 0; i < messageBytes.Length; i++)
+			{
+				handler.Handle(messageBytes[i]);
+			}
 					
 			// Make sure that the CreateEvent method is called with the arguments that we expectx
 			mockBroker.Verify(p => p.CreateEvent(It.Is<SysexFirmwareMessage>(
 					s => s.FirmwareName == "TEST" && 
 					s.MajorVersion == 2 && 
-					s.MinorVersion == 3)),Times.Once());
-			 
-			// See if the handler is reset and can again handle a new message
-			Assert.IsTrue(handler.CanHandle(messageBytes[0]));
-			Assert.IsFalse(handler.CanHandle(messageBytes[1]));
+					s.MinorVersion == 3)),Times.Once());			 
 		}
 
 		[Test]

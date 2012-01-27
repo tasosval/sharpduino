@@ -41,14 +41,14 @@ namespace Sharpduino.Library.Tests.Handlers
         public void Successful_Message()
         {
             var bytes = CreateBytes(0x7F, 0x7F, 0x00, 0x01);
-            for (int i = 0; i < bytes.Length-1; i++)
-            {
-                Assert.IsTrue(handler.CanHandle(bytes[i]));
-                Assert.IsTrue(handler.Handle(bytes[i]));
-            }
+            Test_Handler_Receives_Message_Successfully(bytes);
+        }
 
-            Assert.IsTrue(handler.CanHandle(bytes.Last()));
-            Assert.IsFalse(handler.Handle(bytes.Last()));
+        [Test]
+        public void Handler_Resets_After_Successful_Message()
+        {
+            var bytes = CreateBytes(0x7F, 0x7F, 0x00, 0x01);
+            Test_Handler_Resets_Successfully(bytes);
         }
 
         [Test]
@@ -65,17 +65,6 @@ namespace Sharpduino.Library.Tests.Handlers
                 mes.PinMappings[2] == 0 &&
                 mes.PinMappings[3] == 1
                 )),Times.Once());
-        }
-
-        [Test]
-        public void Handler_Resets_After_Successful_Message()
-        {
-            var bytes = CreateBytes(0x7F, 0x7F, 0x00, 0x01);
-            for (int i = 0; i < bytes.Length; i++)
-                handler.Handle(bytes[i]);
-
-            Assert.IsTrue(handler.CanHandle(bytes[0]));
-            Assert.IsTrue(handler.Handle(bytes[0]));
         }
 
         [Test]

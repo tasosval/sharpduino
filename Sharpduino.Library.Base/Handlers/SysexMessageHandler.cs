@@ -48,7 +48,7 @@ namespace Sharpduino.Library.Base.Handlers
         {
             if (cacheChar != 255)
             {
-                stringBuilder.Append((char)BitHelper.Sevens2Fourteen(cacheChar, charByte));
+                stringBuilder.Append((char)BitHelper.BytesToInt(cacheChar, charByte));
                 cacheChar = 255;
             }
             else

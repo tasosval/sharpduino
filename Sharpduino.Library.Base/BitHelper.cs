@@ -10,7 +10,7 @@ namespace Sharpduino.Library.Base
         /// <summary>
         /// Get the integer value that was sent using the 7-bit messages of the firmata protocol
         /// </summary>
-        public static int Sevens2Fourteen(byte LSB, byte MSB)
+        public static int BytesToInt(byte LSB, byte MSB)
         {
             return (MSB & 0x7f) << 7 | (LSB & 0x7f);
         }
@@ -18,10 +18,24 @@ namespace Sharpduino.Library.Base
         /// <summary>
         /// Split an integer value to two 7-bit parts so it can be sent using the firmata protocol
         /// </summary>
-        public static void Fourteen2Sevens(int value, out byte LSB, out byte MSB)
+        public static void IntToBytes(int value, out byte LSB, out byte MSB)
         {
             LSB = (byte)(value & 0x7f);
             MSB = (byte)((value >> 7) & 0x7f);
+        }
+
+        public static byte[] IntArrayToBytesArray(int[] values)
+        {
+            var bytes = new List<byte>();
+            foreach (var value in values)
+            {
+                byte lsb, msb;
+                IntToBytes(value,out lsb, out msb);
+                bytes.Add(lsb);
+                bytes.Add(msb);
+            }
+
+            return bytes.ToArray();
         }
 
         /// <summary>

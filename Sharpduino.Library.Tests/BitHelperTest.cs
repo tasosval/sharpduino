@@ -45,7 +45,7 @@ namespace Sharpduino.Library.Tests
                     var tempMSB = msb & 0x7F;
                     var tempLSB = lsb & 0x7F;
                     var value = tempMSB << 7 | tempLSB;
-                    BitHelper.Sevens2Fourteen(lsb, msb).Should().Be(value);
+                    BitHelper.BytesToInt(lsb, msb).Should().Be(value);
                 }
             }
         }
@@ -56,7 +56,7 @@ namespace Sharpduino.Library.Tests
             for (int i = 0; i < Math.Pow(2,14); i++)
             {
                 byte lsb,msb;
-                BitHelper.Fourteen2Sevens(i, out lsb, out msb);
+                BitHelper.IntToBytes(i, out lsb, out msb);
                 lsb.Should().Be((byte) (i & 0x7F));
                 msb.Should().Be((byte) ((i & 0x3F80) >> 7));
             }
