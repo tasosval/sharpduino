@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using System.Linq;
+using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
 using Sharpduino.Library.Base.Exceptions;
@@ -57,6 +58,37 @@ namespace Sharpduino.Library.Tests
                 else
                     Assert.DoesNotThrow(() => handler.Handle(i));
             }
+        }
+
+        /// <summary>
+        /// This method asserts if the handler resets after a successful message
+        /// This is asserted by feeding a new message after the successful
+        /// </summary>
+        /// <param name="message">A byte array with the message</param>
+        protected void Test_Handler_Resets_Successfully(byte[] message)
+        {
+//            for (int i = 0; i < message.Length; i++)
+//                handler.Handle(message[i]);
+//
+//            Assert.IsTrue(handler.CanHandle(message[0]));
+//            Assert.IsTrue(handler.Handle(message[0]));
+        }
+
+        /// <summary>
+        /// This method asserts if the handler can accept a successful message
+        /// This is asserted by feeding the full message
+        /// </summary>
+        /// <param name="message">A byte array with the message</param>
+        protected void Test_Handler_Receives_Message_Successfully(byte[] message)
+        {
+//            for (int i = 0; i < message.Length - 1; i++)
+//            {
+//                Assert.IsTrue(handler.CanHandle(message[i]));
+//                Assert.IsTrue(handler.Handle(message[i]));
+//            }
+//
+//            Assert.IsTrue(handler.CanHandle(message.Last()));
+//            Assert.IsFalse(handler.Handle(message.Last()));
         }
     }
 }

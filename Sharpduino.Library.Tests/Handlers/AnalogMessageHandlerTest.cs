@@ -46,7 +46,7 @@ namespace Sharpduino.Library.Tests.Handlers
                 p => p.CreateEvent(
                     It.Is<AnalogMessage>(
                     mes => mes.Pin == (bytes[0] & MessageConstants.MESSAGEPINMASK) && 
-					mes.Value == BitHelper.Sevens2Fourteen(bytes[1],bytes[2]))),Times.Once());
+					mes.Value == BitHelper.BytesToInt(bytes[1],bytes[2]))),Times.Once());
         }
 
 
@@ -71,6 +71,7 @@ namespace Sharpduino.Library.Tests.Handlers
                     Assert.Throws<MessageHandlerException>(() => handler.Handle(i));
                 else
                     Assert.DoesNotThrow(() => handler.Handle(i));
+                handler = CreateHandler();
             }
         }
     }

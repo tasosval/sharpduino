@@ -61,7 +61,7 @@ namespace Sharpduino.Library.Base.Handlers
 					currentHandlerState = HandlerState.MSB;
 					return true;
 				case HandlerState.MSB:
-					message.PinStates = BitHelper.PortVal2PinVals((byte) BitHelper.Sevens2Fourteen(LSBCache, messageByte));
+					message.PinStates = BitHelper.PortVal2PinVals((byte) BitHelper.BytesToInt(LSBCache, messageByte));
 					messageBroker.CreateEvent(message);
 					ResetHandlerState();
 					return false;

@@ -26,7 +26,7 @@ namespace Sharpduino.Library.Tests.Handlers
             for (int i = 0; i < stringMessage.Length; i++)
             {
                 byte lsb, msb;
-                BitHelper.Fourteen2Sevens(stringMessage[i], out lsb, out msb);
+                BitHelper.IntToBytes(stringMessage[i], out lsb, out msb);
                 message[2 + 2 * i] = lsb;
                 message[2 + 2 * i + 1] = msb;
             }
