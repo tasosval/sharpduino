@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Sharpduino.Library.Base.Exceptions;
-using Sharpduino.Library.Base.Messages;
+using Sharpduino.Library.Base.Messages.Receive;
 
 namespace Sharpduino.Library.Base.Handlers
 {

@@ -1,7 +1,6 @@
-﻿using System;
 using Sharpduino.Library.Base.Constants;
 
-namespace Sharpduino.Library.Base.Messages
+namespace Sharpduino.Library.Base.Messages.Receive
 {
     public class PinStateMessage
     {

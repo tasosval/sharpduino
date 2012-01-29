@@ -1,6 +1,4 @@
-using System;
-
-namespace Sharpduino.Library.Base.Messages
+namespace Sharpduino.Library.Base.Messages.Receive
 {
 	public class DigitalMessage
 	{
