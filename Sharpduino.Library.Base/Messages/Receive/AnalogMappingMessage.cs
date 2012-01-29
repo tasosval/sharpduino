@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Sharpduino.Library.Base.Messages
+namespace Sharpduino.Library.Base.Messages.Receive
 {
     public class AnalogMappingMessage
     {

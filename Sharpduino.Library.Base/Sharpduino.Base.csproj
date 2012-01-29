@@ -62,16 +62,16 @@
     <Compile Include="IHandle.cs" />
     <Compile Include="IMessageBroker.cs" />
     <Compile Include="MessageBroker.cs" />
-    <Compile Include="Messages\AnalogMappingMessage.cs" />
-    <Compile Include="Messages\AnalogMessage.cs" />
-    <Compile Include="Messages\CapabilityMessage.cs" />
-    <Compile Include="Messages\I2CResponseMessage.cs" />
-    <Compile Include="Messages\PinStateMessage.cs" />
-    <Compile Include="Messages\ProtocolVersionMessage.cs" />
-    <Compile Include="Messages\SysexFirmwareMessage.cs" />
-    <Compile Include="Messages\SysexStringMessage.cs" />
+    <Compile Include="Messages\Receive\AnalogMappingMessage.cs" />
+    <Compile Include="Messages\Receive\AnalogMessage.cs" />
+    <Compile Include="Messages\Receive\CapabilityMessage.cs" />
+    <Compile Include="Messages\Receive\DigitalMessage.cs" />
+    <Compile Include="Messages\Receive\I2CResponseMessage.cs" />
+    <Compile Include="Messages\Receive\PinStateMessage.cs" />
+    <Compile Include="Messages\Receive\ProtocolVersionMessage.cs" />
+    <Compile Include="Messages\Receive\SysexFirmwareMessage.cs" />
+    <Compile Include="Messages\Receive\SysexStringMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Messages\DigitalMessage.cs" />
     <Compile Include="Handlers\DigitalMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>

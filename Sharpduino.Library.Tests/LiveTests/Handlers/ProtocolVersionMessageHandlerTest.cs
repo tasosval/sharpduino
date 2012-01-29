@@ -6,7 +6,7 @@ using System.Threading;
 using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base.Handlers;
-using Sharpduino.Library.Base.Messages;
+using Sharpduino.Library.Base.Messages.Receive;
 
 namespace Sharpduino.Library.Tests.LiveTests.Handlers
 {
