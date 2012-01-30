@@ -1,4 +1,4 @@
-namespace Sharpduino.Library.Base.Messages.Receive
+namespace Sharpduino.Library.Base.Messages.TwoWay
 {
 	public class DigitalMessage
 	{

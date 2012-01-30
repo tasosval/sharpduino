@@ -8,6 +8,7 @@ using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages.Receive;
+using Sharpduino.Library.Base.Messages.TwoWay;
 
 namespace Sharpduino.Library.Tests.Handlers
 {

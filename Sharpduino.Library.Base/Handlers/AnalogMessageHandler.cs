@@ -2,6 +2,7 @@
 using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages.Receive;
+using Sharpduino.Library.Base.Messages.TwoWay;
 
 namespace Sharpduino.Library.Base.Handlers
 {
@@ -54,7 +55,7 @@ namespace Sharpduino.Library.Base.Handlers
 			switch (currentHandlerState)
 			{
 				case HandlerState.StartEnd:
-                    message.Pin = messageByte & MessageConstants.MESSAGEPINMASK;
+                    message.Pin = (byte) (messageByte & MessageConstants.MESSAGEPINMASK);
 					currentHandlerState = HandlerState.LSB;
 					return true;
 				case HandlerState.LSB:
