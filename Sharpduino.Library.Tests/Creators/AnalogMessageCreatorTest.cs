@@ -12,10 +12,10 @@ using Sharpduino.Library.Base.Messages.TwoWay;
 namespace Sharpduino.Library.Tests.Creators
 {
     [TestFixture]
-    public class AnalogMessageCreatorTest
+    public class AnalogMessageCreatorTest : BaseMessageCreatorTest
     {
         [Test]
-        public void Creates_Appropriate_Message()
+        public override void Creates_Appropriate_Message()
         {
             var creator = new AnalogOutputMessageCreator();
             var bytes = creator.CreateMessage(new AnalogMessage {Pin = 3, Value = 5});
@@ -27,7 +27,7 @@ namespace Sharpduino.Library.Tests.Creators
         }
 
         [Test]
-        public void Throws_Error_On_Wrong_Message()
+        public override void Throws_Error_On_Wrong_Message()
         {
             var creator = new AnalogOutputMessageCreator();
             Assert.Throws<MessageCreatorException>(() => creator.CreateMessage(new DigitalMessage()));

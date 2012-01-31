@@ -56,7 +56,9 @@
   <ItemGroup>
     <Compile Include="BitHelperTest.cs" />
     <Compile Include="Creators\AnalogMessageCreatorTest.cs" />
+    <Compile Include="Creators\BaseMessageCreatorTest.cs" />
     <Compile Include="Creators\DigitalMessageCreatorTest.cs" />
+    <Compile Include="Creators\PinModeMessageCreatorTest.cs" />
     <Compile Include="Handlers\AnalogMappingMessageHandlerTest.cs" />
     <Compile Include="Handlers\AnalogMessageHandlerTest.cs" />
     <Compile Include="Handlers\BaseMessageHandlerTest.cs" />

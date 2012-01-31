@@ -50,6 +50,7 @@
     <Compile Include="Creators\BaseMessageCreator.cs" />
     <Compile Include="Creators\DigitalMessageCreator.cs" />
     <Compile Include="Creators\IMessageCreator.cs" />
+    <Compile Include="Creators\PinModeMessageCreator.cs" />
     <Compile Include="Exceptions\FirmataException.cs" />
     <Compile Include="Exceptions\MessageCreatorException.cs" />
     <Compile Include="Exceptions\MessageHandlerException.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="Messages\Receive\ProtocolVersionMessage.cs" />
     <Compile Include="Messages\Receive\SysexFirmwareMessage.cs" />
     <Compile Include="Messages\Receive\SysexStringMessage.cs" />
+    <Compile Include="Messages\Send\PinModeMessage.cs" />
     <Compile Include="Messages\TwoWay\AnalogMessage.cs" />
     <Compile Include="Messages\TwoWay\DigitalMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -82,7 +84,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Events\" />
-    <Folder Include="Messages\Send\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
