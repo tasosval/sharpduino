@@ -52,6 +52,8 @@
     <Compile Include="Creators\IMessageCreator.cs" />
     <Compile Include="Creators\PinModeMessageCreator.cs" />
     <Compile Include="Creators\StaticMessageCreator.cs" />
+    <Compile Include="Creators\ToggleAnalogReportMessageCreator.cs" />
+    <Compile Include="Creators\ToggleDigitalReportMessageCreator.cs" />
     <Compile Include="Exceptions\FirmataException.cs" />
     <Compile Include="Exceptions\MessageCreatorException.cs" />
     <Compile Include="Exceptions\MessageHandlerException.cs" />
@@ -81,6 +83,8 @@
     <Compile Include="Messages\Send\ProtocolVersionMessage.cs" />
     <Compile Include="Messages\Send\QueryFirmwareMessage.cs" />
     <Compile Include="Messages\Send\StaticMessage.cs" />
+    <Compile Include="Messages\Send\ToggleAnalogReportMessage.cs" />
+    <Compile Include="Messages\Send\ToggleDigitalReportMessage.cs" />
     <Compile Include="Messages\TwoWay\AnalogMessage.cs" />
     <Compile Include="Messages\TwoWay\DigitalMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
