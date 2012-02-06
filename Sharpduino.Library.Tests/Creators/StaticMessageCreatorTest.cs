@@ -9,8 +9,6 @@ namespace Sharpduino.Library.Tests.Creators
     [TestFixture]
     public class StaticMessageCreatorTest
     {
-        private static readonly ProtocolVersionRequestMessage message = new ProtocolVersionRequestMessage();
-
         [Test, TestCaseSource("messages")]
         public void Creates_Appropriate_Message(StaticMessage message)
         {
@@ -33,7 +31,8 @@ namespace Sharpduino.Library.Tests.Creators
                 return new object[]
                     {
                         new ProtocolVersionRequestMessage(),
-                        new QueryFirmwareMessage()
+                        new QueryFirmwareMessage(),
+                        new ResetMessage()
                     };
             }
         }
