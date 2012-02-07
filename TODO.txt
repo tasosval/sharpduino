@@ -1,1 +1,11 @@
 When sending I2C continuous read, we might get a SysexString too many queries
+
+Messages to send
+I2C_Request
+I2C_Config
+Servo_Config
+Sampling_Interval
+Extended_Analog
+Capability_Query
+Pin_State_Query
+Analog_Mapping_Query

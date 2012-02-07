@@ -86,6 +86,7 @@
     <Compile Include="Messages\Send\I2CRequestMessage.cs" />
     <Compile Include="Messages\Send\PinModeMessage.cs" />
     <Compile Include="Messages\Send\ProtocolVersionMessage.cs" />
+    <Compile Include="Messages\Send\QueryCapabilityMessage.cs" />
     <Compile Include="Messages\Send\QueryFirmwareMessage.cs" />
     <Compile Include="Messages\Send\ResetMessage.cs" />
     <Compile Include="Messages\Send\StaticMessage.cs" />
