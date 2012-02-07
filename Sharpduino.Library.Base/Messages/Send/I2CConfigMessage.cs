@@ -11,7 +11,7 @@ namespace Sharpduino.Library.Base.Messages.Send
          * 2  Power pin settings (0:off or 1:on)
          * 3  Delay in microseconds (LSB)
          * 4  Delay in microseconds (MSB)
-         * ... user defined for special cases, etc
+         * ... user defined for special cases, etc NOT used in Standard firmata
          * n  END_SYSEX (0xF7)
          */
 
