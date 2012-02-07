@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using NUnit.Framework;
+using Sharpduino.Library.Base;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Creators;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages.Send;
@@ -11,7 +14,78 @@ namespace Sharpduino.Library.Tests.Creators
         [Test]
         public override void Creates_Appropriate_Message()
         {
-            throw new System.NotImplementedException();
+            var bytes = new byte[]
+                            {
+                                MessageConstants.SYSEX_START,
+                                SysexCommands.I2C_REQUEST,                                
+                                0x34,
+                                0x18, // 7bit, stop reading
+                                MessageConstants.SYSEX_END
+                            };
+
+            var message = new I2CRequestMessage
+                              {
+                                  IsAddress10BitMode = false,
+                                  ReadWriteOptions = I2CReadWriteOptions.StopReading,
+                                  SlaveAddress = BitHelper.BytesToInt(0x34, 0x0)
+                              };
+
+            TestMessage(bytes,message);
+        }
+
+        [Test]
+        public void Creates_Other_Appropriate_Message()
+        {
+            var bytes = new byte[]
+                            {
+                                MessageConstants.SYSEX_START,
+                                SysexCommands.I2C_REQUEST,                                
+                                0x34,
+                                0x10, // 7bit, read continuously
+                                MessageConstants.SYSEX_END
+                            };
+
+            var message = new I2CRequestMessage
+            {
+                IsAddress10BitMode = false,
+                ReadWriteOptions = I2CReadWriteOptions.ReadContinuously,
+                SlaveAddress = BitHelper.BytesToInt(0x34, 0x00)
+            };
+
+            TestMessage(bytes, message);
+        }
+
+        [Test]
+        public void Creates_Appropriate_Message_With_10bit_Address()
+        {
+            var bytes = new byte[]
+                            {
+                                MessageConstants.SYSEX_START,
+                                SysexCommands.I2C_REQUEST,                                
+                                0x34,
+                                0x23, // 10bit, write
+                                0x71,
+                                0x77,
+                                MessageConstants.SYSEX_END
+                            };
+
+            var message = new I2CRequestMessage
+            {
+                IsAddress10BitMode = true,
+                ReadWriteOptions = I2CReadWriteOptions.Write,
+                SlaveAddress = BitHelper.BytesToInt(0x34, 0x3)
+            };
+            message.Data.Add(BitHelper.BytesToInt(0x71, 0x77));
+
+            TestMessage(bytes, message);
+        }
+
+        private void TestMessage(byte[] bytes, I2CRequestMessage message)
+        {
+            var creatore = new I2CRequestMessageCreator();
+            var newBytes = creatore.CreateMessage(message);
+
+            Assert.AreEqual(bytes,newBytes);
         }
 
         [Test]
