@@ -32,7 +32,8 @@ namespace Sharpduino.Library.Tests.Creators
                     {
                         new ProtocolVersionRequestMessage(),
                         new QueryFirmwareMessage(),
-                        new ResetMessage()
+                        new ResetMessage(),
+                        new QueryCapabilityMessage()
                     };
             }
         }

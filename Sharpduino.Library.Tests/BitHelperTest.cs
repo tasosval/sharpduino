@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
-using FluentAssertions;
 
 namespace Sharpduino.Library.Tests
 {
@@ -19,7 +18,7 @@ namespace Sharpduino.Library.Tests
                 for (int valueIndex = 0; valueIndex < values.Length; valueIndex++)
                 {
                     var value = values[valueIndex];
-                    value.Should().Be( ( (i >> valueIndex) & 1 )== 1);
+                    Assert.AreEqual(value, ((i >> valueIndex) & 1) == 1);
                 }
             }
         }
@@ -31,7 +30,7 @@ namespace Sharpduino.Library.Tests
             {
                 // We know from the other test that PortVal2PinVals functions correctly
                 var values = BitHelper.PortVal2PinVals(i);
-                BitHelper.PinVals2PortVal(values).Should().Be(i);
+                Assert.AreEqual(BitHelper.PinVals2PortVal(values),i);
             }            
         }
 
@@ -45,7 +44,7 @@ namespace Sharpduino.Library.Tests
                     var tempMSB = msb & 0x7F;
                     var tempLSB = lsb & 0x7F;
                     var value = tempMSB << 7 | tempLSB;
-                    BitHelper.BytesToInt(lsb, msb).Should().Be(value);
+                    Assert.AreEqual(BitHelper.BytesToInt(lsb, msb),value);
                 }
             }
         }
@@ -57,8 +56,8 @@ namespace Sharpduino.Library.Tests
             {
                 byte lsb,msb;
                 BitHelper.IntToBytes(i, out lsb, out msb);
-                lsb.Should().Be((byte) (i & 0x7F));
-                msb.Should().Be((byte) ((i & 0x3F80) >> 7));
+                Assert.AreEqual(lsb,(byte) (i & 0x7F));
+                Assert.AreEqual(msb,(byte)((i & 0x3F80) >> 7));
             }
         }
     }

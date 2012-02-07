@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Sharpduino.Library.Base.Constants;
+using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Messages.Send;
 
 namespace Sharpduino.Library.Base.Creators
@@ -11,13 +12,20 @@ namespace Sharpduino.Library.Base.Creators
     {
         public override byte[] CreateMessage(I2CConfigMessage message)
         {
-            var bytes = new List<byte>();
+            if ( message == null )
+                throw new MessageCreatorException("This is not an I2CConfigMessage");
 
-            bytes.Add(MessageConstants.SYSEX_START);
-            throw new NotImplementedException();
-            bytes.Add(MessageConstants.SYSEX_END);
-
-            return bytes.ToArray();
+            byte lsb, msb;
+            BitHelper.IntToBytes(message.Delay,out lsb,out msb);
+            
+            return new byte[]
+                       {
+                           MessageConstants.SYSEX_START,
+                           SysexCommands.I2C_CONFIG,
+                           (byte) (message.IsPowerPinOn ? 1 : 0),
+                           lsb, msb,
+                           MessageConstants.SYSEX_END
+                       };
         }
     }
 }
