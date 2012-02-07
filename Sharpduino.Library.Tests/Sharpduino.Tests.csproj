@@ -11,6 +11,8 @@
     <RootNamespace>Sharpduino.Library.Tests</RootNamespace>
     <AssemblyName>Sharpduino.Library.Tests</AssemblyName>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\sharpduino\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions">
-      <HintPath>..\packages\FluentAssertions.1.7.0\Lib\net40\FluentAssertions.dll</HintPath>
-    </Reference>
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
     </Reference>
@@ -58,6 +57,8 @@
     <Compile Include="Creators\AnalogMessageCreatorTest.cs" />
     <Compile Include="Creators\BaseMessageCreatorTest.cs" />
     <Compile Include="Creators\DigitalMessageCreatorTest.cs" />
+    <Compile Include="Creators\I2CConfigMessageCreatorTest.cs" />
+    <Compile Include="Creators\I2CRequestMessageCreatorTest.cs" />
     <Compile Include="Creators\PinModeMessageCreatorTest.cs" />
     <Compile Include="Creators\StaticMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleAnalogReportMessageCreatorTest.cs" />
@@ -91,6 +92,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
