@@ -1,11 +1,33 @@
-When sending I2C continuous read, we might get a SysexString too many queries
-
-Messages to send
+-------------------------
+//  Messages to send   //
+-------------------------
+********** Done *********
 I2C_Request
 I2C_Config
-Servo_Config
-Sampling_Interval
-Extended_Analog
 Capability_Query
-Pin_State_Query
 Analog_Mapping_Query
+Report_Firmware
+String_Data
+Analog
+Digital
+Set_Pin_Mode
+Report_Analog
+Report_Digital
+Extended_Analog
+Sampling_Interval
+Pin_State_Query
+
+******** Not Done ********
+Servo_Config
+
+-------------------------
+//         I2C         //
+-------------------------
+When sending I2C continuous read, we might get a SysexString too many queries
+
+-------------------------
+//        Servo        //
+-------------------------
+This is the current proposal for adding Servo support based on feedback from Bjoern Hartmann, Shigeru Kobayashi, and Erik Sjodin. The core idea is to just add a "config" message, then use the SET_PIN_MODE message to attach/detach Servo support to a pin. This is how hardware PWM is currently handled. This would save space in the protocol by reusing the SET_PIN_MODE message, but the host software implementation could have a different interface, e.g. Arduino's attach() and detach().
+
+minPulse, maxPulse, and angle are all 14-bit unsigned integers. Angle is in degrees. The SERVO_CONFIG can be sent at any time to change the settings. 

@@ -13,6 +13,7 @@ namespace Sharpduino.Library.Base.Constants
         public const byte CAPABILITY_RESPONSE = 0x6c;
         public const byte PIN_STATE_QUERY = 0x6d;
         public const byte PIN_STATE_RESPONSE = 0x6e;
+        public const byte EXTENDED_ANALOG = 0x6F;
         public const byte SERVO_CONFIG = 0x70;
         public const byte STRING_DATA = 0x71;
         public const byte PULSE_DATA = 0x74;
