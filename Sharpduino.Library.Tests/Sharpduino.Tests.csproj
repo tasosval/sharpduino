@@ -57,9 +57,12 @@
     <Compile Include="Creators\AnalogMessageCreatorTest.cs" />
     <Compile Include="Creators\BaseMessageCreatorTest.cs" />
     <Compile Include="Creators\DigitalMessageCreatorTest.cs" />
+    <Compile Include="Creators\ExtendedAnalogMessageCreatorTest.cs" />
     <Compile Include="Creators\I2CConfigMessageCreatorTest.cs" />
     <Compile Include="Creators\I2CRequestMessageCreatorTest.cs" />
     <Compile Include="Creators\PinModeMessageCreatorTest.cs" />
+    <Compile Include="Creators\PinStateQueryMessageCreatorTest.cs" />
+    <Compile Include="Creators\SamplingIntervalMessageCreatorTest.cs" />
     <Compile Include="Creators\StaticMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleAnalogReportMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleDigitalReportMessageCreatorTest.cs" />

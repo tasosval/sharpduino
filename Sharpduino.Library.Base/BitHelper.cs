@@ -24,6 +24,29 @@ namespace Sharpduino.Library.Base
             MSB = (byte)((value >> 7) & 0x7f);
         }
 
+        /// <summary>
+        /// Split an integer to as many 7-bit parts as needed so it can be sent using the firmata protocol
+        /// </summary>
+        /// <param name="value">The integer value we want to convert</param>
+        /// <param name="minimumBytes">This is used to ensure that </param>
+        /// <returns>A series of 7-bit values representing the value</returns>
+        public static IEnumerable<byte> GetBytesFromInt(int value,int minimumBytes = 2)
+        {
+            while (true)
+            {
+                // There is no need to send another byte (everything will be 0 from now on)
+                if ( minimumBytes-- <= 0 && value <= 0 )
+                    yield break;
+
+                // Cache the value we want to return
+                byte returnValue = (byte) (value & 0x7f);
+                // Prepare the value for the next iteration
+                value = value >> 7;
+                // yield return the current 7-bit value
+                yield return returnValue;
+            }
+        }
+
         public static byte[] IntArrayToBytesArray(int[] values)
         {
             var bytes = new List<byte>();

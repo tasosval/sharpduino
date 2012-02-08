@@ -32,7 +32,7 @@ namespace Sharpduino.Library.Tests
                 var values = BitHelper.PortVal2PinVals(i);
                 Assert.AreEqual(BitHelper.PinVals2PortVal(values),i);
             }            
-        }
+        }        
 
         [Test]
         public void Sevens2Fourteen_Functions_Correctly()
@@ -59,6 +59,24 @@ namespace Sharpduino.Library.Tests
                 Assert.AreEqual(lsb,(byte) (i & 0x7F));
                 Assert.AreEqual(msb,(byte)((i & 0x3F80) >> 7));
             }
+        }
+
+        [Test]
+        public void GetBytesFromInt_Functions_Correctly()
+        {
+            for (int i = 0; i < Math.Pow(2, 14); i++)
+            {
+                byte lsb, msb;
+                BitHelper.IntToBytes(i, out lsb, out msb);
+                var bytes = BitHelper.GetBytesFromInt(i).ToArray();
+                Assert.AreEqual(bytes,new byte[]{lsb,msb});
+            }
+
+            // 1011010101011001 -> B559 -> 46425
+            var newBytes = BitHelper.GetBytesFromInt(46425).ToArray();
+            Assert.AreEqual(newBytes[0], 0xB559 & 0x7f);
+            Assert.AreEqual(newBytes[1], 0xB559 >> 7 & 0x7f);
+            Assert.AreEqual(newBytes[2], 0xB559 >> 14 & 0x7f);            
         }
     }
 }

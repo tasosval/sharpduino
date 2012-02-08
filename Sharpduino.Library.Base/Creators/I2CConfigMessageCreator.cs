@@ -22,7 +22,7 @@ namespace Sharpduino.Library.Base.Creators
                        {
                            MessageConstants.SYSEX_START,
                            SysexCommands.I2C_CONFIG,
-                           (byte) (message.IsPowerPinOn ? 1 : 0),
+                           //(byte) (message.IsPowerPinOn ? 1 : 0),
                            lsb, msb,
                            MessageConstants.SYSEX_END
                        };
