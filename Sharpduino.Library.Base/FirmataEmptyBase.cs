@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Sharpduino.Library.Base.Creators;
@@ -33,10 +34,19 @@ namespace Sharpduino.Library.Base
         /// </summary>
         protected SerialPort ComPort;
 
+        /// <summary>
+        /// Incoming Data as a Queue of bytes, which is suitable for the handling mechanism
+        /// </summary>
         protected Queue<byte> IncomingData;
 
-        protected MessageBroker messageBroker;
+        /// <summary>
+        /// The messagebroker that handles all the incoming Message event creation
+        /// </summary>
+        protected MessageBroker MessageBroker;
 
+        /// <summary>
+        /// The messageCreators dictionary that will help create any message we want to send
+        /// </summary>
         protected Dictionary<Type, IMessageCreator> MessageCreators;
 
         private bool processQueue;
@@ -123,25 +133,38 @@ namespace Sharpduino.Library.Base
     /// </summary>
     public abstract class FirmataBase : FirmataEmptyBase
     {
-        public FirmataBase(string portName) : base(portName) { }
+        protected FirmataBase(string portName) : base(portName) { }
 
         public override void Initialize()
         {
             base.Initialize();
             AddBasicMessageHandlers();
+            AddBasicMessageCreators();
+        }
+
+        private void AddBasicMessageCreators()
+        {
+            string @namespace = "Sharpduino.Library.Base.Creators";
+            var q = from t in Assembly.GetExecutingAssembly().GetTypes()
+                    where t.IsClass && !t.IsAbstract &&                     //We are searching for a non-abstract class 
+                        t.Namespace == @namespace &&                        //in the namespace we provide                        
+                        t.GetInterfaces().Any(x => x.GetGenericTypeDefinition() == typeof(IMessageCreator<>)) //that implements IMessageCreator<>
+                    select t;
+            q.ToList().ForEach(
+                t => MessageCreators[t.GetGenericTypeDefinition()] = (IMessageCreator) Activator.CreateInstance(t));
         }
 
         private void AddBasicMessageHandlers()
         {
-            AvailableHandlers.Add(new AnalogMappingMessageHandler(messageBroker));
-            AvailableHandlers.Add(new AnalogMessageHandler(messageBroker));
-            AvailableHandlers.Add(new CapabilityMessageHandler(messageBroker));
-            AvailableHandlers.Add(new DigitalMessageHandler(messageBroker));
-            AvailableHandlers.Add(new I2CMessageHandler(messageBroker));
-            AvailableHandlers.Add(new PinStateMessageHandler(messageBroker));
-            AvailableHandlers.Add(new ProtocolVersionMessageHandler(messageBroker));
-            AvailableHandlers.Add(new SysexStringMessageHandler(messageBroker));
-            AvailableHandlers.Add(new SysexFirmwareMessageHandler(messageBroker));
+            AvailableHandlers.Add(new AnalogMappingMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new AnalogMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new CapabilityMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new DigitalMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new I2CMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new PinStateMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new ProtocolVersionMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new SysexStringMessageHandler(MessageBroker));
+            AvailableHandlers.Add(new SysexFirmwareMessageHandler(MessageBroker));
         }
 
 
