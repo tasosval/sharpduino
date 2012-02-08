@@ -63,6 +63,7 @@
     <Compile Include="Creators\PinModeMessageCreatorTest.cs" />
     <Compile Include="Creators\PinStateQueryMessageCreatorTest.cs" />
     <Compile Include="Creators\SamplingIntervalMessageCreatorTest.cs" />
+    <Compile Include="Creators\ServoConfigMessageCreatorTest.cs" />
     <Compile Include="Creators\StaticMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleAnalogReportMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleDigitalReportMessageCreatorTest.cs" />

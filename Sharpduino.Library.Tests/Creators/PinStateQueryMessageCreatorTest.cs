@@ -18,14 +18,14 @@ namespace Sharpduino.Library.Tests.Creators
         public override void Creates_Appropriate_Message()
         {
             var bytes = new byte[]
-                            {
-                                MessageConstants.SYSEX_START,
-                                SysexCommands.PIN_STATE_QUERY,
-                                86,
-                                MessageConstants.SYSEX_END
-                            };
+                {
+                    MessageConstants.SYSEX_START,
+                    SysexCommands.PIN_STATE_QUERY,
+                    86,
+                    MessageConstants.SYSEX_END
+                };
 
-            var message = new PinStateQueryMessage() {Pin = 86};
+            var message = new PinStateQueryMessage {Pin = 86};
             var creator = new PinStateQueryMessageCreator();
             var newBytes = creator.CreateMessage(message);
             Assert.AreEqual(bytes,newBytes);
@@ -42,7 +42,7 @@ namespace Sharpduino.Library.Tests.Creators
         public void Throws_Error_On_Wrong_Pin()
         {
             var creator = new PinStateQueryMessageCreator();
-            Assert.Throws<MessageCreatorException>(() => creator.CreateMessage(new PinStateQueryMessage(){Pin = 130}));
+            Assert.Throws<MessageCreatorException>(() => creator.CreateMessage(new PinStateQueryMessage{Pin = 130}));
         }
     }
 }
