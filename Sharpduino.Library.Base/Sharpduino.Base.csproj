@@ -58,6 +58,7 @@
     <Compile Include="Creators\PinModeMessageCreator.cs" />
     <Compile Include="Creators\PinStateQueryMessageCreator.cs" />
     <Compile Include="Creators\SamplingIntervalMessageCreator.cs" />
+    <Compile Include="Creators\ServoConfigMessageCreator.cs" />
     <Compile Include="Creators\StaticMessageCreator.cs" />
     <Compile Include="Creators\ToggleAnalogReportMessageCreator.cs" />
     <Compile Include="Creators\ToggleDigitalReportMessageCreator.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="Messages\Send\QueryFirmwareMessage.cs" />
     <Compile Include="Messages\Send\ResetMessage.cs" />
     <Compile Include="Messages\Send\SamplingIntervalMessage.cs" />
+    <Compile Include="Messages\Send\ServoConfigMessage.cs" />
     <Compile Include="Messages\Send\StaticMessage.cs" />
     <Compile Include="Messages\Send\ToggleAnalogReportMessage.cs" />
     <Compile Include="Messages\Send\ToggleDigitalReportMessage.cs" />
