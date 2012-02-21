@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Ports;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using Sharpduino.Library.Base.Creators;
 using Sharpduino.Library.Base.Exceptions;
 using Sharpduino.Library.Base.Handlers;
-using Sharpduino.Library.Base.Messages.TwoWay;
+using Sharpduino.Library.Base.SerialProviders;
 
 namespace Sharpduino.Library.Base
 {
@@ -17,103 +14,145 @@ namespace Sharpduino.Library.Base
     /// that should be overriden to provide any functionality. It has no message handling.
     /// Useful if you want to implement your own subset of the firmata protocol.
     /// </summary>
-    public class FirmataEmptyBase : IDisposable
+    public abstract class FirmataEmptyBase : IDisposable
     {
         /// <summary>
         /// The available handlers for this instance
         /// </summary>
-        protected List<IMessageHandler> AvailableHandlers;
+        protected List<IMessageHandler> AvailableHandlers { get; private set; }
 
         /// <summary>
-        /// The current handler. The next byte goes to this handler
+        /// A list of the appropriate handlers for the current message
         /// </summary>
-        protected IMessageHandler CurrentHandler;
+        protected List<IMessageHandler> AppropriateHandlers { get; private set; }
 
         /// <summary>
         /// The serial port 
         /// </summary>
-        protected SerialPort ComPort;
+        protected ISerialProvider Provider { get; private set; }
 
         /// <summary>
         /// Incoming Data as a Queue of bytes, which is suitable for the handling mechanism
         /// </summary>
-        protected Queue<byte> IncomingData;
+        protected Queue<byte> IncomingData { get; private set; }
 
         /// <summary>
         /// The messagebroker that handles all the incoming Message event creation
         /// </summary>
-        protected MessageBroker MessageBroker;
+        protected MessageBroker MessageBroker { get; private set; }
 
         /// <summary>
         /// The messageCreators dictionary that will help create any message we want to send
         /// </summary>
-        protected Dictionary<Type, IMessageCreator> MessageCreators;
+        protected Dictionary<Type, IMessageCreator> MessageCreators { get; private set; }
 
         private bool processQueue;
+        private bool firstTime = true;
 
-        public FirmataEmptyBase(string portName)
+        protected FirmataEmptyBase(ISerialProvider provider)
         {
             AvailableHandlers = new List<IMessageHandler>();
-            ComPort = new SerialPort(portName);
+            AppropriateHandlers = new List<IMessageHandler>();
+            IncomingData = new Queue<byte>();
+            MessageCreators = new Dictionary<Type, IMessageCreator>();
+            MessageBroker = new MessageBroker();
+            this.Provider = provider;
+            Initialize();
         }
 
         /// <summary>
-        /// Initialize any 
+        /// Initialize the comport
         /// </summary>
-        public virtual void Initialize()
+        private void Initialize()
         {
-            throw new NotImplementedException();
-            // TODO : open port
-            // TODO : subscribe to port events
-            AddExpansionMessageHandlers();
-            processQueue = true;
-            var t = new ThreadStart(ReceiveQueueThread);
-            Thread thr = new Thread(t);
-            thr.Start();
+            if (firstTime)
+            {
+                // These things should only be done one time
+
+                // This is should be implemented by inheritors of this base class
+                // but called here once and only once
+                AddExpansionMessageHandlers();
+
+                // Begin the parsing thread
+                processQueue = true;
+                var t = new ThreadStart(ReceiveQueueThread);
+                var thr = new Thread(t);
+                thr.Start();
+
+                // Subscribe to the DataReceived messages
+                Provider.DataReceived += ProviderDataReceived;
+                firstTime = false;
+            }
+            Provider.Open();            
+        }
+
+        private void ProviderDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            // Just add the received bytes to the incoming data queue
+            lock (IncomingData)
+            {
+                foreach (var b in e.BytesReceived)
+                    IncomingData.Enqueue(b);
+            }
         }
 
         /// <summary>
         /// This method should be overriden to add any extension message handlers
         /// </summary>
-        protected virtual void AddExpansionMessageHandlers() { }
+        protected abstract void AddExpansionMessageHandlers();
+
+        #region Proper Dispose Code
+
+        // Proper Dispose code should contain the following. See
+        // http://stackoverflow.com/questions/538060/proper-use-of-the-idisposable-interface
+
+        ~FirmataEmptyBase()
+        {
+            Dispose(false);
+        }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        private void ReceiveQueueThread()
+        
+        protected void Dispose(bool shouldDispose)
         {
-            byte currentByte = 0x0;
-            bool foundByteFlag = false;
-            while (processQueue)
-            {             
-                lock (IncomingData)
+            if ( shouldDispose )
+            {
+                // This should allow the parsing thread to close
+                processQueue = false;
+                // TODO : see if we should wait for the thread or not
+
+                // Dispose of the com port as safely as possible
+                if ( Provider != null )
                 {
-                    if (IncomingData.Count > 0)
-                    {                    
-                        currentByte = IncomingData.Dequeue();
-                        foundByteFlag = true;
-                    }
+                    Provider.DataReceived -= ProviderDataReceived;
+                    Provider.Dispose();
+                    Provider = null;
                 }
-
-                if ( foundByteFlag )
-                    HandleByte(currentByte);
-                else
-                    Thread.Sleep(50);
-
-                foundByteFlag = false;
             }
         }
 
+        #endregion
+
+
+        /// <summary>
+        /// Send a message to the board
+        /// </summary>
+        /// <typeparam name="T">The type of the message we want to send. Implicitly evaluated by the object</typeparam>
+        /// <param name="message">The message object</param>
         public void SendMessage<T>(T message)
         {
-            var type = typeof (T);
+            var type = typeof(T);
+            // Try to see if we have any creators for this type of message
             if (MessageCreators.ContainsKey(type))
             {
+                // Use the creator to create the message then transmit it through the port
                 var bytes = MessageCreators[type].CreateMessage(message);
-                // TODO : Send bytes
-                throw new NotImplementedException();
+                Provider.Send(bytes);
             }
             else
             {
@@ -121,52 +160,79 @@ namespace Sharpduino.Library.Base
             }
         }
 
+        /// <summary>
+        /// This is the code that gets executed in another thread
+        /// and parses all incoming bytes
+        /// </summary>
+        private void ReceiveQueueThread()
+        {
+            byte currentByte = 0x0;
+            bool foundByteFlag = false;
+            // This thread runs while we have the processQueue set
+            while (processQueue)
+            {             
+                // lock the incoming data so we don't have any race confitions
+                lock (IncomingData)
+                {
+                    // take a peek and dequeue the first byte in the queue
+                    if (IncomingData.Count > 0)
+                    {                    
+                        currentByte = IncomingData.Dequeue();
+                        foundByteFlag = true;
+                    }
+                }
+
+                // If we found a byte then Handle it
+                if ( foundByteFlag )
+                    HandleByte(currentByte);
+                else
+                    Thread.Sleep(10);
+
+                // reset the flag and the byte value
+                foundByteFlag = false;
+                currentByte = 0x0;
+            }
+        }
+
+        /// <summary>
+        /// Handle the next byte from the queue
+        /// </summary>
         private void HandleByte(byte currentByte)
         {
-            throw new NotImplementedException();            
+            // Check to see if we are already handling a message
+            if ( AppropriateHandlers.Count > 0 )
+            {
+                foreach (var handler in AppropriateHandlers)
+                {
+                    // if it can handle the byte then do so
+                    if (handler.CanHandle(currentByte))
+                    {
+                        // if the handler has finished with the message then remove it
+                        if (handler.Handle(currentByte) == false)
+                        {
+                            AppropriateHandlers.Remove(handler);
+                        }
+                    }
+                    // if the handler cannot handle the message remove it
+                    else
+                        AppropriateHandlers.Remove(handler);
+                }
+                return; // do not continue with the new message code
+            }
+
+            ///////////////////////////////////////////////
+            // If we reach here then we have a new message.
+            ///////////////////////////////////////////////
+            
+            // iterate through all available handlers to see which ones can handle this new message
+            foreach (var availableHandler in AvailableHandlers)
+            {
+                if ( availableHandler.CanHandle(currentByte))
+                {
+                    if ( availableHandler.Handle(currentByte) )
+                        AppropriateHandlers.Add(availableHandler);                    
+                }
+            }
         }
-    }
-
-    /// <summary>
-    /// This is a firmata base class that adds all known message handlers.
-    /// It is useful for the full firmata implementation
-    /// </summary>
-    public abstract class FirmataBase : FirmataEmptyBase
-    {
-        protected FirmataBase(string portName) : base(portName) { }
-
-        public override void Initialize()
-        {
-            base.Initialize();
-            AddBasicMessageHandlers();
-            AddBasicMessageCreators();
-        }
-
-        private void AddBasicMessageCreators()
-        {
-            string @namespace = "Sharpduino.Library.Base.Creators";
-            var q = from t in Assembly.GetExecutingAssembly().GetTypes()
-                    where t.IsClass && !t.IsAbstract &&                     //We are searching for a non-abstract class 
-                        t.Namespace == @namespace &&                        //in the namespace we provide                        
-                        t.GetInterfaces().Any(x => x.GetGenericTypeDefinition() == typeof(IMessageCreator<>)) //that implements IMessageCreator<>
-                    select t;
-            q.ToList().ForEach(
-                t => MessageCreators[t.GetGenericTypeDefinition()] = (IMessageCreator) Activator.CreateInstance(t));
-        }
-
-        private void AddBasicMessageHandlers()
-        {
-            AvailableHandlers.Add(new AnalogMappingMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new AnalogMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new CapabilityMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new DigitalMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new I2CMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new PinStateMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new ProtocolVersionMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new SysexStringMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new SysexFirmwareMessageHandler(MessageBroker));
-        }
-
-
     }
 }
