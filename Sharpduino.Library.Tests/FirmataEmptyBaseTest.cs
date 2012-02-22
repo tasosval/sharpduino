@@ -44,11 +44,6 @@ namespace Sharpduino.Library.Tests
         {
             // Do nothing
         }
-
-        protected override void AddExpansionMessageHandlers()
-        {
-            // Do nothing
-        }
     }
 
     [TestFixture]
@@ -87,6 +82,22 @@ namespace Sharpduino.Library.Tests
                 // See if the handler was successfully added to the appropriate ones
                 Assert.AreSame(moqFirmataEmptyBase.Handlers[0], moqFirmataEmptyBase.CurrentHandlers[0]);
             }             
+        }
+
+        [Test]
+        public void No_Appropriate_Handler_After_Successful_Message()
+        {
+            var mockSerialProvider = new Mock<ISerialProvider>();
+            using (var moqFirmataEmptyBase = new FirmataEmptyBaseStub(mockSerialProvider.Object))
+            {
+                moqFirmataEmptyBase.Handlers.Add(new AnalogMessageHandler(moqFirmataEmptyBase.Broker));
+                mockSerialProvider.Raise(m => m.DataReceived += null, new DataReceivedEventArgs(new byte[] { MessageConstants.ANALOG_MESSAGE, 0x00,0x00 }));
+                // Wait for the parser thread to catch up
+                Thread.Sleep(100);
+
+                // See if the handler was successfully added to the appropriate ones
+                Assert.AreEqual(0, moqFirmataEmptyBase.CurrentHandlers.Count);
+            }
         }
 
         [Test]
