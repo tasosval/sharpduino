@@ -23,26 +23,30 @@ namespace Sharpduino.Library.Base
         private void AddBasicMessageCreators()
         {
             string @namespace = "Sharpduino.Library.Base.Creators";
-            var q = from t in Assembly.GetExecutingAssembly().GetTypes()
+            var messageCreators = (from t in Assembly.GetExecutingAssembly().GetTypes()
                     where t.IsClass && !t.IsAbstract &&                     //We are searching for a non-abstract class 
                           t.Namespace == @namespace &&                        //in the namespace we provide                        
                           t.GetInterfaces().Any(x => x.GetGenericTypeDefinition() == typeof(IMessageCreator<>)) //that implements IMessageCreator<>
-                    select t;
-            q.ToList().ForEach(
-                t => MessageCreators[t.GetGenericTypeDefinition()] = (IMessageCreator) Activator.CreateInstance(t));
+                    select t).ToList();
+
+            // Create an instance for each type we found and add it to the MessageCreators with 
+            // the Message Type that it creates as a key
+            messageCreators.ForEach(
+                t => MessageCreators[t.BaseType.GetGenericArguments()[0]] = (IMessageCreator)Activator.CreateInstance(t));
         }
 
         private void AddBasicMessageHandlers()
         {
-            AvailableHandlers.Add(new AnalogMappingMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new AnalogMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new CapabilityMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new DigitalMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new I2CMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new PinStateMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new ProtocolVersionMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new SysexStringMessageHandler(MessageBroker));
-            AvailableHandlers.Add(new SysexFirmwareMessageHandler(MessageBroker));
+            string @namespace = "Sharpduino.Library.Base.Handlers";
+            var messageCreators = (from t in Assembly.GetExecutingAssembly().GetTypes()
+                                   where t.IsClass && !t.IsAbstract &&                     //We are searching for a non-abstract class 
+                                         t.Namespace == @namespace &&                        //in the namespace we provide
+                                         t.GetInterfaces().Any(x => x == typeof(IMessageHandler)) //that implements IMessageHandler
+                                   select t).ToList();
+
+            // Create an instance for each type we found and add it to the AvailableHandlers\
+            messageCreators.ForEach(
+                t => AvailableHandlers.Add((IMessageHandler)Activator.CreateInstance(t,MessageBroker)));
         }
     }
 }

@@ -69,10 +69,6 @@ namespace Sharpduino.Library.Base
             {
                 // These things should only be done one time
 
-                // This is should be implemented by inheritors of this base class
-                // but called here once and only once
-                AddExpansionMessageHandlers();
-
                 // Begin the parsing thread
                 processQueue = true;
                 var t = new ThreadStart(ReceiveQueueThread);
@@ -96,10 +92,6 @@ namespace Sharpduino.Library.Base
             }
         }
 
-        /// <summary>
-        /// This method should be overriden to add any extension message handlers
-        /// </summary>
-        protected abstract void AddExpansionMessageHandlers();
 
         #region Proper Dispose Code
 
