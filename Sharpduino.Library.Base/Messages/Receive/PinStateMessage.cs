@@ -2,6 +2,9 @@ using Sharpduino.Library.Base.Constants;
 
 namespace Sharpduino.Library.Base.Messages.Receive
 {
+    /// <summary>
+    /// Message that shows the current state of one pin
+    /// </summary>
     public class PinStateMessage
     {
         public int PinNo { get; set; }

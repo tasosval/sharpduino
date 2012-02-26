@@ -3,6 +3,9 @@ using Sharpduino.Library.Base.Constants;
 
 namespace Sharpduino.Library.Base.Messages.Receive
 {
+    /// <summary>
+    /// Message that contains the capabilities for one pin
+    /// </summary>
     public class CapabilityMessage
     {
         /// <summary>
@@ -17,4 +20,11 @@ namespace Sharpduino.Library.Base.Messages.Receive
             Modes = new Dictionary<PinModes, int>();
         }
     }
+
+    /// <summary>
+    /// Message to show that we finished receiving capabilities 
+    /// messages for all pins of the board
+    /// </summary>
+    public class CapabilitiesFinishedMessage
+    {}
 }
