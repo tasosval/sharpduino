@@ -95,7 +95,12 @@ namespace Sharpduino.Library.Tests.Handlers
                     mes => mes.PinNo == 1 &&
                            mes.Modes.Keys.Contains(PinModes.Analog) && mes.Modes[PinModes.Analog] == 10
                     )), Times.Once());
+
+            // Also verify that when we finish with the capabilities we raise a capabilities finished event
+            mockBroker.Verify(p => p.CreateEvent(
+                It.IsAny<CapabilitiesFinishedMessage>()),Times.Once());
         }
+
     }
 
     public class MyFactoryClass

@@ -110,7 +110,7 @@ namespace Sharpduino.Library.Base
         }
 
         
-        protected void Dispose(bool shouldDispose)
+        protected virtual void Dispose(bool shouldDispose)
         {
             if ( shouldDispose )
             {
@@ -136,7 +136,7 @@ namespace Sharpduino.Library.Base
         /// </summary>
         /// <typeparam name="T">The type of the message we want to send. Implicitly evaluated by the object</typeparam>
         /// <param name="message">The message object</param>
-        public void SendMessage<T>(T message)
+        public virtual void SendMessage<T>(T message)
         {
             var type = typeof(T);
             // Try to see if we have any creators for this type of message
