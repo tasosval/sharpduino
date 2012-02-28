@@ -56,7 +56,7 @@ namespace Sharpduino.Library.Base.Handlers
                     if (messageByte == MessageConstants.SYSEX_END)
                     {
                         messageBroker.CreateEvent(message);
-                        ResetHandlerState();
+                        Reset();
                         return false;
                     }
 

@@ -20,5 +20,10 @@
         /// The START_MESSAGE byte for the current handler
         /// </summary>
         byte START_MESSAGE { get; }
+
+        /// <summary>
+        /// Reset the handler state so it can receive new messages
+        /// </summary>
+        void Reset();
     }
 }

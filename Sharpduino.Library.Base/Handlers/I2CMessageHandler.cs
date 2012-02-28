@@ -64,7 +64,7 @@ namespace Sharpduino.Library.Base.Handlers
                 case HandlerState.Address:
                     if (messageByte > 127)
                     {
-                        ResetHandlerState();
+                        Reset();
                         throw new MessageHandlerException(BaseExceptionMessage + "This is not a valid address");
                     }
                     if (firstByte)
@@ -82,7 +82,7 @@ namespace Sharpduino.Library.Base.Handlers
                 case HandlerState.Register:
                     if (messageByte > 127)
                     {
-                        ResetHandlerState();
+                        Reset();
                         throw new MessageHandlerException(BaseExceptionMessage + "This is not a valid register");
                     }
                     if (firstByte)
@@ -100,7 +100,7 @@ namespace Sharpduino.Library.Base.Handlers
                 case HandlerState.Data:
                     if (messageByte > 127 && messageByte != MessageConstants.SYSEX_END )
                     {
-                        ResetHandlerState();
+                        Reset();
                         throw new MessageHandlerException(BaseExceptionMessage + "These are not valid data");
                     }
 
@@ -108,14 +108,14 @@ namespace Sharpduino.Library.Base.Handlers
                     {
                         if (message.Data.Count == 0 && messageByte == MessageConstants.SYSEX_END )
                         {
-                            ResetHandlerState();
+                            Reset();
                             throw new MessageHandlerException(BaseExceptionMessage + "There was no data incoming");
                         }
 
                         if (messageByte == MessageConstants.SYSEX_END)
                         {
                             messageBroker.CreateEvent(message);
-                            ResetHandlerState();
+                            Reset();
                             return false;
                         }
                         byteCache = messageByte;
@@ -126,7 +126,7 @@ namespace Sharpduino.Library.Base.Handlers
                     {
                         if (messageByte == MessageConstants.SYSEX_END)
                         {
-                            ResetHandlerState();
+                            Reset();
                             throw new MessageHandlerException(BaseExceptionMessage + "The message should not end here");
                         }
                         message.Data.Add(BitHelper.BytesToInt(byteCache,messageByte));

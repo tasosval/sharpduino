@@ -48,7 +48,7 @@ namespace Sharpduino.Library.Base.Handlers
 
             if (!CanHandle(messageByte))
             {
-                ResetHandlerState();
+                Reset();
                 throw new MessageHandlerException(BaseExceptionMessage);
             }
 
@@ -74,7 +74,7 @@ namespace Sharpduino.Library.Base.Handlers
                     }
                     message.MinorVersion = messageByte;
                     messageBroker.CreateEvent(message);
-                    ResetHandlerState();
+                    Reset();
                     return false;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -47,7 +47,7 @@ namespace Sharpduino.Library.Base.Handlers
 		{
 			if (!CanHandle(messageByte))
 			{
-				ResetHandlerState();
+				Reset();
 				throw new MessageHandlerException("Error with the incoming byte. This is not a valid DigitalMessage");
 			}
 
@@ -64,7 +64,7 @@ namespace Sharpduino.Library.Base.Handlers
 				case HandlerState.MSB:
 					message.PinStates = BitHelper.PortVal2PinVals((byte) BitHelper.BytesToInt(LSBCache, messageByte));
 					messageBroker.CreateEvent(message);
-					ResetHandlerState();
+					Reset();
 					return false;
 				default:
 					throw new ArgumentOutOfRangeException();

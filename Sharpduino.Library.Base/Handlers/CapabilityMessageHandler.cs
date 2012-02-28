@@ -62,7 +62,7 @@ namespace Sharpduino.Library.Base.Handlers
                     // If the message has finished Reset and return that we won't handle other bytes
                     if (messageByte == MessageConstants.SYSEX_END)
                     {
-                        ResetHandlerState();
+                        Reset();
                         messageBroker.CreateEvent(new CapabilitiesFinishedMessage());
                         return false;
                     }
@@ -81,7 +81,7 @@ namespace Sharpduino.Library.Base.Handlers
                     // Some assurance that we get an actual mode
                     if (messageByte > Enum.GetValues(typeof(PinModes)).Length)
                     {
-                        ResetHandlerState();
+                        Reset();
                         throw new MessageHandlerException(BaseExceptionMessage + "There is no such pin mode");
                     }
                     currentMode = (PinModes) messageByte;

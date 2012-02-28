@@ -48,7 +48,7 @@ namespace Sharpduino.Library.Base.Handlers
 		{
 			if (!CanHandle(messageByte))
 			{
-				ResetHandlerState();
+				Reset();
 				throw new MessageHandlerException("Error with the incoming byte. This is not a valid AnalogMessage");
 			}
 
@@ -65,7 +65,7 @@ namespace Sharpduino.Library.Base.Handlers
 				case HandlerState.MSB:
 					message.Value = BitHelper.BytesToInt(LSBCache, messageByte);
 					messageBroker.CreateEvent(message);
-                    ResetHandlerState();
+                    Reset();
 					return false;
 				default:
 					throw new ArgumentOutOfRangeException();

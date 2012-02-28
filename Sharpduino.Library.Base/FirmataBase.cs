@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Sharpduino.Library.Base.Creators;
 using Sharpduino.Library.Base.Handlers;
+using Sharpduino.Library.Base.Messages.Send;
 using Sharpduino.Library.Base.SerialProviders;
 
 namespace Sharpduino.Library.Base
@@ -24,8 +25,9 @@ namespace Sharpduino.Library.Base
         {
             string @namespace = "Sharpduino.Library.Base.Creators";
             var messageCreators = (from t in Assembly.GetExecutingAssembly().GetTypes()
-                    where t.IsClass && !t.IsAbstract &&                     //We are searching for a non-abstract class 
-                          t.Namespace == @namespace &&                        //in the namespace we provide                        
+                                   where t.IsClass && !t.IsAbstract && //We are searching for a non-abstract class 
+                                         t.Namespace == @namespace && //in the namespace we provide  
+                                         t.BaseType.GetGenericArguments()[0] != typeof (StaticMessage) && // Do not include the static message creator
                           t.GetInterfaces().Any(x => x.GetGenericTypeDefinition() == typeof(IMessageCreator<>)) //that implements IMessageCreator<>
                     select t).ToList();
 
@@ -33,6 +35,18 @@ namespace Sharpduino.Library.Base
             // the Message Type that it creates as a key
             messageCreators.ForEach(
                 t => MessageCreators[t.BaseType.GetGenericArguments()[0]] = (IMessageCreator)Activator.CreateInstance(t));
+
+            // This is the special case for the static message creator
+            StaticMessageCreator staticMessageCreator = new StaticMessageCreator();
+
+            // Get only the StaticMessage derived types
+            @namespace = "Sharpduino.Library.Base.Messages.Send";
+            var staticMessages = (from t in Assembly.GetExecutingAssembly().GetTypes()
+                                  where t.IsClass && t.BaseType == typeof (StaticMessage)
+                                  select t).ToList();
+
+            // Add them to the MessageCreators dictionary
+            staticMessages.ForEach(t => MessageCreators[t] = staticMessageCreator);
         }
 
         private void AddBasicMessageHandlers()

@@ -15,9 +15,9 @@ namespace Sharpduino.Library.Base.Handlers
             START_MESSAGE = MessageConstants.SYSEX_START;
         }
 
-        protected override void ResetHandlerState()
+        public override void Reset()
         {
-            base.ResetHandlerState();
+            base.Reset();
             stringBuilder = new StringBuilder();
             currentByteCount = 0;
             cacheChar = 255;
@@ -30,14 +30,14 @@ namespace Sharpduino.Library.Base.Handlers
             if (!CanHandle(messageByte))
             {
                 // Reset the state of the handler
-                ResetHandlerState();
+                Reset();
                 throw new MessageHandlerException(BaseExceptionMessage);
             }
 
             if (++currentByteCount > MessageConstants.MAX_DATA_BYTES)
             {
                 // Reset the state of the handler
-                ResetHandlerState();
+                Reset();
                 throw new MessageHandlerException(BaseExceptionMessage + "Max message length was exceeded.");
             }
 

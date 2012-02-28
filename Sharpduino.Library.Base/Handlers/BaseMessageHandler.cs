@@ -9,7 +9,7 @@ namespace Sharpduino.Library.Base.Handlers
     {
         protected BaseMessageHandler(IMessageBroker messageBroker) : base(messageBroker)
         {
-            ResetHandlerState();
+            Reset();
         }
 
         /// <summary>
@@ -17,7 +17,7 @@ namespace Sharpduino.Library.Base.Handlers
         /// </summary>
         protected T message;
 
-        protected virtual void ResetHandlerState()
+        public override void Reset()
         {
             message = new T();           
             OnResetHandlerState();
@@ -33,6 +33,8 @@ namespace Sharpduino.Library.Base.Handlers
         /// The START_MESSAGE byte for the current handler
         /// </summary>
         public byte START_MESSAGE { get; protected set; }
+
+        public abstract void Reset();
 
 
         protected BaseMessageHandler(IMessageBroker messageBroker)
