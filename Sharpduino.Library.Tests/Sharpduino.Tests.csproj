@@ -67,6 +67,7 @@
     <Compile Include="Creators\StaticMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleAnalogReportMessageCreatorTest.cs" />
     <Compile Include="Creators\ToggleDigitalReportMessageCreatorTest.cs" />
+    <Compile Include="EasyFirmataTest.cs" />
     <Compile Include="FirmataBaseTest.cs" />
     <Compile Include="FirmataEmptyBaseTest.cs" />
     <Compile Include="Handlers\AnalogMappingMessageHandlerTest.cs" />
@@ -94,6 +95,10 @@
     <ProjectReference Include="..\Sharpduino.Library.Base\Sharpduino.Base.csproj">
       <Project>{99803926-2DF8-4FCE-8821-51432406288E}</Project>
       <Name>Sharpduino.Base</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sharpduino\Sharpduino.csproj">
+      <Project>{380AE903-2399-48C4-8341-7655EF4BD409}</Project>
+      <Name>Sharpduino</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

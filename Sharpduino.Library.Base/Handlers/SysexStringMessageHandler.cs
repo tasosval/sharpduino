@@ -60,7 +60,7 @@ namespace Sharpduino.Library.Base.Handlers
                         // Get the string we have been building all along
                         message.Message = stringBuilder.ToString();
                         messageBroker.CreateEvent(message);
-						ResetHandlerState();                        
+						Reset();                        
                         return false;
                     }
                     HandleChar(messageByte);

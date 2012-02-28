@@ -69,7 +69,7 @@ namespace Sharpduino.Library.Base.SerialProviders
         {
             byte[] bytes = new byte[port.BytesToRead];
             port.Read(bytes, 0, bytes.Length);
-
+            OnDataReceived(bytes);
         }
 
         public event EventHandler<DataReceivedEventArgs> DataReceived;

@@ -194,6 +194,9 @@ namespace Sharpduino.Library.Base
             // Check to see if we are already handling a message
             if ( AppropriateHandlers.Count > 0 )
             {
+                // This is a temporary list to remove handlers after iterating through 
+                // the appropriate handlers
+                List<IMessageHandler> handlersToRemove = new List<IMessageHandler>();
                 foreach (var handler in AppropriateHandlers)
                 {
                     // if it can handle the byte then do so
@@ -202,13 +205,18 @@ namespace Sharpduino.Library.Base
                         // if the handler has finished with the message then remove it
                         if (handler.Handle(currentByte) == false)
                         {
-                            AppropriateHandlers.Remove(handler);
+                            handlersToRemove.Add(handler);
                         }
                     }
                     // if the handler cannot handle the message remove it
                     else
-                        AppropriateHandlers.Remove(handler);
+                        handlersToRemove.Add(handler);
                 }
+
+                handlersToRemove.ForEach(x => x.Reset());
+                // Remove all handlers we found out earlier
+                AppropriateHandlers.RemoveAll(handlersToRemove.Contains);
+
                 return; // do not continue with the new message code
             }
 

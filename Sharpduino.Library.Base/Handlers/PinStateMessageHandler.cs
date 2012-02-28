@@ -77,7 +77,7 @@ namespace Sharpduino.Library.Base.Handlers
                         if ( stateBytesReceived == 0 )
                             throw new MessageHandlerException(BaseExceptionMessage + "There was no state in the message for pin " + message.PinNo);
                         messageBroker.CreateEvent(message);
-                        ResetHandlerState();
+                        Reset();
                         return false;
                     }
                     message.State |= messageByte << ( stateBytesReceived * 7 );

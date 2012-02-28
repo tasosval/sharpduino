@@ -83,6 +83,23 @@ namespace Sharpduino
     public class PinCapability : CapabilityMessage
     {}
 
+    public class NewAnalogValueEventArgs : EventArgs
+    {
+        public int NewValue { get; set; }
+        public byte AnalogPin { get; set; }
+    }
+
+    public class NewDigitalValueEventArgs : EventArgs
+    {
+        public byte Port { get; set; }
+        public bool[] Pins { get; set; }
+    }
+
+    public class NewStringMessageEventArgs : EventArgs
+    {
+        public string Message { get; set; }
+    }
+
     public class Pin
     {
         public PinModes CurrentMode { get; set; }
@@ -109,15 +126,21 @@ namespace Sharpduino
             QueryCapabilities,
             QueryAnalogMappings,
             QueryPinStates,
-            ToggleDigitalReports,
-            ToggleAnalogReports,
+            StartReports,
             FullyInitialized
         }
 
         private InitializationStages currentInitState;
 
+        /***********************************************************************************************/
+        //                                       PROPERTIES                                            //
+        /***********************************************************************************************/
         #region Properties
 
+        /// <summary>
+        /// This is true if we have finished the first communications with the board
+        /// to setup the main functionality. The EasyFirmata can be used when this is true
+        /// </summary>
         public bool IsInitialized
         {
             get { return currentInitState == InitializationStages.FullyInitialized; }
@@ -127,7 +150,22 @@ namespace Sharpduino
         /// This event marks the end of the initialization procedure
         /// The EasyFirmata is usable now
         /// </summary>
-        public EventHandler Initialized;
+        public event EventHandler Initialized;
+
+        /// <summary>
+        /// Event to notify about new analog values
+        /// </summary>
+        public event EventHandler<NewAnalogValueEventArgs> NewAnalogValue;
+
+        /// <summary>
+        /// Event that is raised when a digital message is received 
+        /// </summary>
+        public event EventHandler<NewDigitalValueEventArgs> NewDigitalValue;
+
+        /// <summary>
+        /// Event that is raised when a string message is received
+        /// </summary>
+        public event EventHandler<NewStringMessageEventArgs> NewStringMessage;
 
         /// <summary>
         /// The pins available
@@ -139,12 +177,15 @@ namespace Sharpduino
         /// </summary>
         public List<Pin> AnalogPins { get; private set; }
 
+        /// <summary>
+        /// The protocol version that the board uses to communicate
+        /// </summary>
         public string ProtocolVersion { get; private set; }
 
+        /// <summary>
+        /// The firmware version that the board is running
+        /// </summary>
         public string Firmware { get; private set; }
-
-
-
 
         #endregion
 
@@ -161,7 +202,9 @@ namespace Sharpduino
             ReInit();
         }
 
-        // Do the initialization from the start
+        /// <summary>
+        /// Do the initialization from the start
+        /// </summary> 
         public void ReInit()
         {
             currentInitState = 0;
@@ -183,7 +226,7 @@ namespace Sharpduino
                     // This is the first inistialization stage
                     // Stop any previous reports
                     StopReports();
-                    base.SendMessage(new ProtocolVersionMessage());
+                    base.SendMessage(new ProtocolVersionRequestMessage());
                     break;
                 case InitializationStages.QueryFirmwareVersion:
                     base.SendMessage(new QueryFirmwareMessage());
@@ -203,37 +246,61 @@ namespace Sharpduino
                     {
                         base.SendMessage(new PinStateQueryMessage{Pin = (byte) i});
                     }
-                    base.SendMessage(new PinStateMessage());
                     break;
-                case InitializationStages.ToggleDigitalReports:
+                case InitializationStages.StartReports:
+                    var portsCount = (byte) Math.Ceiling(Pins.Count/8.0);
+                    for (byte i = 0; i < portsCount; i++)
+                    {
+                        base.SendMessage(new ToggleDigitalReportMessage() { Port = i, ShouldBeEnabled = true });
+                    }
+
+                    for (byte i = 0; i < AnalogPins.Count; i++)
+                    {
+                        base.SendMessage(new ToggleAnalogReportMessage() { Pin = i, ShouldBeEnabled = true });
+                    }
+
+                    // There is no callback for the above messages so advance anyway                    
+                    OnInitialized();
                     break;
-                case InitializationStages.ToggleAnalogReports:
-                    break;
-                case InitializationStages.FullyInitialized:
-                    if (Initialized != null )
-                        Initialized(this,new EventArgs());
+                    case InitializationStages.FullyInitialized:
+                    // Do nothing we are finished with the initialization
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("stage");
             }
 
             // Go to the next state
-            currentInitState++;
+            if ( !IsInitialized)
+                currentInitState++;
         }
 
+        /***********************************************************************************************/
+        //                               INCOMING MESSAGE HANDLING                                     //
+        /***********************************************************************************************/
+        #region Incoming Message Handling
 
+        /// <summary>
+        /// Handle the Protocol Message. Contains info about the protocol that the board is using to communicate
+        /// </summary>
         public void Handle(ProtocolVersionMessage message)
         {
+            if ( IsInitialized )return;
             ProtocolVersion = string.Format("{0}.{1}", message.MajorVersion, message.MinorVersion);
+            AdvanceInitialization();
         }
 
+        /// <summary>
+        /// Handle the Firmware Message. Contains info about the firmware running in the board
+        /// </summary>
         public void Handle(SysexFirmwareMessage message)
         {
+            if ( IsInitialized ) return;
             Firmware = string.Format("{0}:{1}.{2}", message.FirmwareName, message.MajorVersion, message.MinorVersion);
+            AdvanceInitialization();
         }        
 
         /// <summary>
-        /// Handle the capability messages there will be one such message for each pin
+        /// Handle the capability messages. There will be one such message for each pin
         /// </summary>
         public void Handle(CapabilityMessage message)
         {
@@ -245,6 +312,10 @@ namespace Sharpduino
             Pins.Add(pin);
         }
 
+        /// <summary>
+        /// Handle the Capabilities Finished Message. This is used to advance to the next step of
+        /// the initialization after the capabilities
+        /// </summary>
         public void Handle(CapabilitiesFinishedMessage message)
         {
             // If we haven't initialized then do the next thing in the init procedure
@@ -254,8 +325,14 @@ namespace Sharpduino
             // Otherwise this message conveys no information
         }
         
+        /// <summary>
+        /// Handle the Analog Mapping Message. This is used to find out which pins have 
+        /// analog input capabilities and fill the AnalogPins list
+        /// </summary>
         public void Handle(AnalogMappingMessage message)
         {
+            if (IsInitialized) return;
+            
             for (int i = 0; i < message.PinMappings.Count; i++)
             {
                 // If we have an analog pin
@@ -267,27 +344,128 @@ namespace Sharpduino
                     AnalogPins.Add(Pins[i]);
                 }
             }
+            AdvanceInitialization();
         }
 
+        /// <summary>
+        /// Handler the Pin State Message. Get more information about each pin.
+        /// This is called multiple times and we advance to the next step, only after
+        /// we have received information about the last pin
+        /// </summary>
         public void Handle(PinStateMessage message)
         {
+            if ( IsInitialized )return;
+
             Pin currentPin = Pins[message.PinNo];
             currentPin.CurrentMode = message.Mode;
             currentPin.CurrentValue = message.State;
 
             // TODO : here we should check to see if we have finished with the PinState Messages
             // and advance to the next step. Test the following:
-            if ( message.PinNo == Pins.Count )
+            if ( message.PinNo == Pins.Count - 1 )
                 AdvanceInitialization();
         }
 
+        /// <summary>
+        /// Handle the Analog Messsage. Update the value for the pin and raise a
+        /// NewAnalogValue event
+        /// </summary>
+        public void Handle(AnalogMessage message)
+        {
+            // Here we are in the twilight zone
+            if (currentInitState <= InitializationStages.QueryPinStates )
+                return;
+
+            // First save the value in the Pins and AnalogPins lists
+            AnalogPins[message.Pin].CurrentValue = message.Value;
+
+            OnNewAnalogValue(message.Pin,message.Value);
+        }
+
+        /// <summary>
+        /// Handle the Digital Message. Update the values for the pins of the port
+        /// and raise a NewDigitalValue event
+        /// </summary>
+        /// <param name="message"></param>
+        public void Handle(DigitalMessage message)
+        {
+            var pinStart = (byte)(8*message.Port);
+            for (byte i = 0; i < 8; i++)
+            {
+                Pins[i + pinStart].CurrentValue = message.PinStates[i] ? 1 : 0;
+            }
+        }
+
+        /// <summary>
+        /// Handle the Sysex String Message. Raise a NewStringMessage event
+        /// </summary>
+        /// <param name="message"></param>
+        public void Handle(SysexStringMessage message)
+        {
+            OnNewStringMessage(message.Message);
+        }
+
+        public void Handle(I2CResponseMessage message)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        /***********************************************************************************************/
+        //                                  EVENTS CREATION                                            //
+        /***********************************************************************************************/
+        #region Event Creation
+        public void OnInitialized()
+        {
+            var handler = Initialized;
+            if ( handler != null )
+            {
+                handler(this,new EventArgs());
+            }
+        }
+
+        public void OnNewAnalogValue(byte pin, int value)
+        {
+            var handler = NewAnalogValue;
+            if ( handler != null )
+            {
+                handler(this, new NewAnalogValueEventArgs() { AnalogPin = pin, NewValue = value });
+            }
+        }
+
+        public void OnNewDigitalValue(byte port,bool[] pins)
+        {
+            var handler = NewDigitalValue;
+            if ( handler != null )
+            {
+                handler(this, new NewDigitalValueEventArgs() { Port = port, Pins = pins });
+            }
+        }
+
+        public void OnNewStringMessage(string message)
+        {
+            var handler = NewStringMessage;
+            if ( handler != null )
+            {
+                handler(this, new NewStringMessageEventArgs() { Message = message });
+            }
+        }
+        #endregion
 
         /// <summary>
         /// Stop receiving reports.
         /// </summary>
         private void StopReports()
         {
-            throw new NotImplementedException();
+            for (byte i = 0; i < MessageConstants.MAX_DIGITAL_PORTS; i++)
+            {
+                base.SendMessage(new ToggleDigitalReportMessage() { Port = i, ShouldBeEnabled = false });
+            }
+
+            for (byte i = 0; i < AnalogPins.Count; i++)
+            {
+                base.SendMessage(new ToggleAnalogReportMessage() { Pin = i, ShouldBeEnabled = false });
+            }
         }
 
         /// <summary>
