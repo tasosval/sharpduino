@@ -227,10 +227,10 @@ namespace Sharpduino.Library.Base
             // iterate through all available handlers to see which ones can handle this new message
             foreach (var availableHandler in AvailableHandlers)
             {
-                if ( availableHandler.CanHandle(currentByte))
+                if (availableHandler.CanHandle(currentByte))
                 {
-                    if ( availableHandler.Handle(currentByte) )
-                        AppropriateHandlers.Add(availableHandler);                    
+                    if (availableHandler.Handle(currentByte))
+                        AppropriateHandlers.Add(availableHandler);
                 }
             }
         }
