@@ -353,14 +353,14 @@ namespace Sharpduino
         /// we have received information about the last pin
         /// </summary>
         public void Handle(PinStateMessage message)
-        {
-            if ( IsInitialized )return;
-
+        {            
             Pin currentPin = Pins[message.PinNo];
             currentPin.CurrentMode = message.Mode;
             currentPin.CurrentValue = message.State;
 
-            // TODO : here we should check to see if we have finished with the PinState Messages
+            if (IsInitialized) return;
+
+            // here we check to see if we have finished with the PinState Messages
             // and advance to the next step. Test the following:
             if ( message.PinNo == Pins.Count - 1 )
                 AdvanceInitialization();
