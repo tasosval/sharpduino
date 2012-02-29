@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Sharpduino.Library.Base.Messages.Send;
+using Sharpduino.Library.Base.Messages.TwoWay;
 using Sharpduino.Library.Base.SerialProviders;
 
 namespace Sharpduino.Tests.Consoles
@@ -12,7 +14,7 @@ namespace Sharpduino.Tests.Consoles
         private static bool isInitialized = false;
         static void Main(string[] args)
         {
-            ComPortProvider port = new ComPortProvider("COM4");
+            ComPortProvider port = new ComPortProvider("COM3");
             using (var easyFirmata = new EasyFirmata(port))
             {
                 easyFirmata.Initialized += easyFirmata_Initialized;
@@ -33,7 +35,23 @@ namespace Sharpduino.Tests.Consoles
                     }
                 }
 
-                Console.ReadKey();
+                #region Servo Test
+                easyFirmata.SendMessage(new ServoConfigMessage(){Pin = 9});
+                int val = 90;
+                ConsoleKey key;
+                do
+                {
+                    key = Console.ReadKey().Key;
+                    if ( key == ConsoleKey.UpArrow )
+                        easyFirmata.SendMessage(new AnalogMessage(){Pin = 9,Value = ++val});
+                    else if ( key == ConsoleKey.DownArrow )
+                        easyFirmata.SendMessage(new AnalogMessage() { Pin = 9, Value = --val });
+
+                    Thread.Sleep(100);
+
+                } while (key != ConsoleKey.Enter);
+                #endregion
+
             }
         }
 

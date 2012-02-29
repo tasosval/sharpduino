@@ -91,13 +91,20 @@ namespace Sharpduino
 
     public class NewDigitalValueEventArgs : EventArgs
     {
-        public byte Port { get; set; }
+        public int Port { get; set; }
         public bool[] Pins { get; set; }
     }
 
     public class NewStringMessageEventArgs : EventArgs
     {
         public string Message { get; set; }
+    }
+
+    public class PinStateEventArgs : EventArgs
+    {
+        public int Value { get; set;}
+        public int Pin { get; set; }
+        public PinModes Mode { get; set; }
     }
 
     public class Pin
@@ -166,6 +173,12 @@ namespace Sharpduino
         /// Event that is raised when a string message is received
         /// </summary>
         public event EventHandler<NewStringMessageEventArgs> NewStringMessage;
+
+        /// <summary>
+        /// Event that is raised when we receive a message about the state of a pin
+        /// Usually in response to a PinStateQueryMessage
+        /// </summary>
+        public event EventHandler<PinStateEventArgs> PinStateReceived;
 
         /// <summary>
         /// The pins available
@@ -357,8 +370,11 @@ namespace Sharpduino
             Pin currentPin = Pins[message.PinNo];
             currentPin.CurrentMode = message.Mode;
             currentPin.CurrentValue = message.State;
-
+            
             if (IsInitialized) return;
+
+            // Notify others only when we are fully initialized
+            OnPinStateReceived(message);
 
             // here we check to see if we have finished with the PinState Messages
             // and advance to the next step. Test the following:
@@ -394,6 +410,8 @@ namespace Sharpduino
             {
                 Pins[i + pinStart].CurrentValue = message.PinStates[i] ? 1 : 0;
             }
+
+            OnNewDigitalValue(message.Port,message.PinStates);
         }
 
         /// <summary>
@@ -415,7 +433,8 @@ namespace Sharpduino
         //                                  EVENTS CREATION                                            //
         /***********************************************************************************************/
         #region Event Creation
-        public void OnInitialized()
+
+        private void OnInitialized()
         {
             var handler = Initialized;
             if ( handler != null )
@@ -424,7 +443,7 @@ namespace Sharpduino
             }
         }
 
-        public void OnNewAnalogValue(byte pin, int value)
+        private void OnNewAnalogValue(byte pin, int value)
         {
             var handler = NewAnalogValue;
             if ( handler != null )
@@ -433,7 +452,7 @@ namespace Sharpduino
             }
         }
 
-        public void OnNewDigitalValue(byte port,bool[] pins)
+        private void OnNewDigitalValue(int port,bool[] pins)
         {
             var handler = NewDigitalValue;
             if ( handler != null )
@@ -442,12 +461,21 @@ namespace Sharpduino
             }
         }
 
-        public void OnNewStringMessage(string message)
+        private void OnNewStringMessage(string message)
         {
             var handler = NewStringMessage;
             if ( handler != null )
             {
                 handler(this, new NewStringMessageEventArgs() { Message = message });
+            }
+        }
+
+        private void OnPinStateReceived(PinStateMessage message)
+        {
+            var handler = PinStateReceived;
+            if ( handler != null)
+            {
+                handler(this, new PinStateEventArgs() {Pin = message.PinNo, Mode = message.Mode, Value = message.State});
             }
         }
         #endregion
