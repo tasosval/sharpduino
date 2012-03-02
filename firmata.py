@@ -19,7 +19,7 @@ port = ComPortProvider("COM3")
 firm = EasyFirmata(port)
 
 #Here we should wait
-while firm.IsInitialized == False
+while firm.IsInitialized == False:
 	pass
 
 #create the message we want to send
