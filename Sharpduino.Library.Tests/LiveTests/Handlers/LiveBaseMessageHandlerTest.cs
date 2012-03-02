@@ -12,6 +12,7 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
         public void Init()
         {
             port = new SerialPort("COM3", 57600, Parity.None, 8, StopBits.One);
+            port.Open();
         }
 
         [TestFixtureTearDown]

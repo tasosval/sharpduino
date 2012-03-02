@@ -21,7 +21,6 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
         [Test]
         public void Receive_Protocol_Version_Message_From_Live_Arduino_Running_Standard_Firmata_2_3()
         {
-            port.Open();
             /*  0  query protocol version (0xF9)
              */
             port.Write(new byte[] { handler.START_MESSAGE }, 0, 1);
@@ -36,8 +35,7 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
                 handler.Handle(incomingByte);
             }
 
-            mockBroker.Verify(p => p.CreateEvent(
-                   It.Is<ProtocolVersionMessage>(mes => mes.MajorVersion == 2 && mes.MinorVersion == 3)), Times.Once());
+            mockBroker.Verify(p => p.CreateEvent(It.IsAny<ProtocolVersionMessage>()), Times.Once());
         }
     }
 }

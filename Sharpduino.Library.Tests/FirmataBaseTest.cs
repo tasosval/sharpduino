@@ -50,7 +50,7 @@ namespace Sharpduino.Library.Tests
             // the Sharpduino.Base.Handlers and the Sharpduino.Base.Creators namespace
             // if we put others (maybe in a new protocol version) this test should fail
             Assert.AreEqual(9,stubBase.Handlers.Count);
-            Assert.AreEqual(12,stubBase.Creators.Count);
+            Assert.AreEqual(16,stubBase.Creators.Count);
         }
     }
 }

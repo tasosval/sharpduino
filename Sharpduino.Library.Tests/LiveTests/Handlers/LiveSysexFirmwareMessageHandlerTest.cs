@@ -8,8 +8,10 @@ using Moq;
 using NUnit.Framework;
 using Sharpduino.Library.Base;
 using Sharpduino.Library.Base.Constants;
+using Sharpduino.Library.Base.Creators;
 using Sharpduino.Library.Base.Handlers;
 using Sharpduino.Library.Base.Messages.Receive;
+using Sharpduino.Library.Base.Messages.Send;
 
 namespace Sharpduino.Library.Tests.LiveTests.Handlers
 {
@@ -24,12 +26,9 @@ namespace Sharpduino.Library.Tests.LiveTests.Handlers
         [Test]
         public void Receive_Firmware_Message_From_Live_Arduino_Running_Standard_Firmata_2_3()
         {
-            port.Open();
-            /*  0  START_MESSAGE (0xF0)
-                1  queryFirmware (0x79)
-                2  END_SYSEX (0xF7)
-             */
-            port.Write(new byte[]{handler.START_MESSAGE,SysexCommands.QUERY_FIRMWARE,MessageConstants.SYSEX_END},0,3);
+            var smc = new StaticMessageCreator();
+            var bytes = smc.CreateMessage(new QueryFirmwareMessage());
+            port.Write(bytes,0,bytes.Length);
 
             // Wait for the arduino to reply
             Thread.Sleep(100);
