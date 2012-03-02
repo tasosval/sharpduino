@@ -67,11 +67,11 @@ namespace Sharpduino.Library.Tests
         /// <param name="message">A byte array with the message</param>
         protected void Test_Handler_Resets_Successfully(byte[] message)
         {
-//            for (int i = 0; i < message.Length; i++)
-//                handler.Handle(message[i]);
-//
-//            Assert.IsTrue(handler.CanHandle(message[0]));
-//            Assert.IsTrue(handler.Handle(message[0]));
+            for (int i = 0; i < message.Length; i++)
+                handler.Handle(message[i]);
+
+            Assert.IsTrue(handler.CanHandle(message[0]));
+            Assert.IsTrue(handler.Handle(message[0]));
         }
 
         /// <summary>
@@ -81,14 +81,13 @@ namespace Sharpduino.Library.Tests
         /// <param name="message">A byte array with the message</param>
         protected void Test_Handler_Receives_Message_Successfully(byte[] message)
         {
-//            for (int i = 0; i < message.Length - 1; i++)
-//            {
-//                Assert.IsTrue(handler.CanHandle(message[i]));
-//                Assert.IsTrue(handler.Handle(message[i]));
-//            }
-//
-//            Assert.IsTrue(handler.CanHandle(message.Last()));
-//            Assert.IsFalse(handler.Handle(message.Last()));
+            for (int i = 0; i < message.Length - 1; i++)
+            {
+                Assert.IsTrue(handler.CanHandle(message[i]));
+                Assert.IsTrue(handler.Handle(message[i]));
+            }
+
+            Assert.IsFalse(handler.Handle(message.Last()));
         }
     }
 }

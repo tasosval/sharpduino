@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ArduinoUno.cs" />
     <Compile Include="EasyFirmata.cs" />
+    <Compile Include="Exceptions\InvalidPinModeException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

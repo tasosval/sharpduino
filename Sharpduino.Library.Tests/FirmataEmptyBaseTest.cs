@@ -130,6 +130,28 @@ namespace Sharpduino.Library.Tests
         }
 
         [Test]
+        public void Should_Reset_Handlers_When_They_Are_Discarded_From_The_AppropriateHandlers_List()
+        {
+            var mockSerialProvider = new Mock<ISerialProvider>();
+            using (var moqFirmataEmptyBase = new FirmataEmptyBaseStub(mockSerialProvider.Object))
+            {
+                var ana = new AnalogMappingMessageHandler(moqFirmataEmptyBase.Broker);
+                var firm = new SysexFirmwareMessageHandler(moqFirmataEmptyBase.Broker);
+                moqFirmataEmptyBase.Handlers.Add(ana);
+                moqFirmataEmptyBase.Handlers.Add(firm);
+                mockSerialProvider.Raise(m => m.DataReceived += null,
+                    new DataReceivedEventArgs(new[] { MessageConstants.SYSEX_START, SysexCommands.ANALOG_MAPPING_RESPONSE }));
+
+                // Wait for the parser thread to catch up
+                Thread.Sleep(100);                
+                
+                // Assert that the firmware handler has been reset and can handle a sysex start message
+                // if it wasn't reset it would require a SysexCommands.QUERY_FIRMWARE byte
+                Assert.IsTrue(firm.CanHandle(MessageConstants.SYSEX_START));
+            }
+        }
+
+        [Test]
         public void Should_Send_Messages_Using_The_SerialProvider()
         {
             var mockSerialProvider = new Mock<ISerialProvider>();
