@@ -37,7 +37,8 @@ namespace Sharpduino.Library.Base.Messages.Send
         {
             MinPulse = DefaultMinPulse;
             MaxPulse = DefaultMaxPulse;
-            Angle = Pin = 0;
+            Pin = 0;
+            Angle = 90;
         }
     }
 }

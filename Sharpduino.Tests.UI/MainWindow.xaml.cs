@@ -38,9 +38,21 @@ namespace Sharpduino.Tests.UI
 
             var port = new ComPortProvider("COM3");
             firmata = new EasyFirmata(port);
+            firmata.NewDigitalValue += new EventHandler<NewDigitalValueEventArgs>(firmata_NewDigitalValue);
 
             timer = new DispatcherTimer(TimeSpan.FromSeconds(1),DispatcherPriority.Normal, (s,e) => CheckFirmata(),this.Dispatcher);
             timer.Start();
+        }
+
+        void firmata_NewDigitalValue(object sender, NewDigitalValueEventArgs e)
+        {
+            if ( e.Port != 0 )
+                return;
+
+            for (int i = 0; i < e.Pins.Length; i++)
+            {
+                Pins[i].IsOn = e.Pins[i];
+            }
         }
 
         private void CheckFirmata()
@@ -58,13 +70,6 @@ namespace Sharpduino.Tests.UI
                     firmata.SendMessage(new PinModeMessage() { Mode = PinModes.Input, Pin = 3 });
                     firmata.SendMessage(new PinModeMessage() { Mode = PinModes.Input, Pin = 4 });
                     firstTime = false;
-                }
-
-                for (int i = 0; i < Pins.Count; i++)
-                {
-                    var pin = Pins[i];
-                    pin.IsOn = firmata.Pins[i].CurrentValue == 1;
-                    firmata.SendMessage(new PinStateQueryMessage { Pin = (byte) i });
                 }
             }
         }

@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArduinoUno.cs" />
     <Compile Include="EasyFirmata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

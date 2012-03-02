@@ -11,63 +11,6 @@ using Sharpduino.Library.Base.SerialProviders;
 
 namespace Sharpduino
 {
-    public enum ArduinoUnoDigitalPins
-    {
-        D0_RX = 0,
-        D1_TX,
-        D2,
-        D3_PWM,
-        D4,
-        D5_PWM,
-        D6_PWM,
-        D7,
-        D8,
-        D9_PWM,
-        D10_PWM,
-        D11_PWM,
-        D12,
-        D13,
-        A0 = 16,
-        A1 = 17,
-        A2 = 18,
-        A3 = 19,
-        A4 = 20,
-        A5 = 21
-    }
-
-    public enum ArduinoUnoPWMPins
-    {
-        D3_PWM = 3,
-        D5_PWM = 5,
-        D6_PWM = 6,
-        D9_PWM = 9,
-        D10_PWM = 10,
-        D11_PWM = 11
-    }
-
-    public enum ArduinoUnoAnalogPins
-    {
-        A0 = 0,
-        A1,
-        A2,
-        A3,
-        A4,
-        A5
-    }
-
-    public static class ArduinoUnoConstantsHelper
-    {
-        public static int PinToAnalog(this int pin)
-        {
-            return pin - 16;
-        }
-
-        public static int AnalogToPin(this int analogPin)
-        {
-            return analogPin + 16;
-        }
-    }
-
     public interface IHandleAdvancedMessages :
         IHandle<AnalogMappingMessage>, IHandle<CapabilityMessage>, IHandle<CapabilitiesFinishedMessage>,
         IHandle<I2CResponseMessage>, IHandle<PinStateMessage>, IHandle<ProtocolVersionMessage>,
@@ -154,6 +97,33 @@ namespace Sharpduino
         }
 
         /// <summary>
+        /// The pins available
+        /// </summary>
+        public List<Pin> Pins { get; private set; }
+
+        /// <summary>
+        /// The analog pins of the board
+        /// </summary>
+        public List<Pin> AnalogPins { get; private set; }
+
+        /// <summary>
+        /// The protocol version that the board uses to communicate
+        /// </summary>
+        public string ProtocolVersion { get; private set; }
+
+        /// <summary>
+        /// The firmware version that the board is running
+        /// </summary>
+        public string Firmware { get; private set; }
+
+        #endregion
+
+        /***********************************************************************************************/
+        //                                         EVENTS                                              //
+        /***********************************************************************************************/
+        #region Events
+
+        /// <summary>
         /// This event marks the end of the initialization procedure
         /// The EasyFirmata is usable now
         /// </summary>
@@ -180,28 +150,13 @@ namespace Sharpduino
         /// </summary>
         public event EventHandler<PinStateEventArgs> PinStateReceived;
 
-        /// <summary>
-        /// The pins available
-        /// </summary>
-        public List<Pin> Pins { get; private set; }
-
-        /// <summary>
-        /// The analog pins of the board
-        /// </summary>
-        public List<Pin> AnalogPins { get; private set; }
-
-        /// <summary>
-        /// The protocol version that the board uses to communicate
-        /// </summary>
-        public string ProtocolVersion { get; private set; }
-
-        /// <summary>
-        /// The firmware version that the board is running
-        /// </summary>
-        public string Firmware { get; private set; }
-
         #endregion
 
+        /***********************************************************************************************/
+        //                              CONSTRUCTOR - INITIALIZATION                                   //
+        /***********************************************************************************************/
+        #region Constructor - Initialization
+        
         public EasyFirmata(ISerialProvider serialProvider): base(serialProvider)
         {
             // Initialize the objects
@@ -286,6 +241,8 @@ namespace Sharpduino
             if ( !IsInitialized)
                 currentInitState++;
         }
+        
+        #endregion
 
         /***********************************************************************************************/
         //                               INCOMING MESSAGE HANDLING                                     //
@@ -479,6 +436,24 @@ namespace Sharpduino
             }
         }
         #endregion
+
+        /// <summary>
+        /// Get the current values for a digital port. It is useful for creating a DigitalMessage
+        /// </summary>
+        /// <param name="port">The port whose values we want</param>
+        /// <returns>A bool array representing the current state of each pin</returns>
+        public bool[] GetDigitalPortValues(int port)
+        {
+            var values = new bool[8];
+            for (int i = 0; i < 8; i++)
+            {
+                // Even if we have analog values ie > 1 we put 0 as it doesn't matter
+                // from the board side. They will be ignored anyway
+                values[i] = Pins[port*8 + i].CurrentValue == 1 ? true : false;
+            }
+
+            return values;
+        }
 
         /// <summary>
         /// Stop receiving reports.
