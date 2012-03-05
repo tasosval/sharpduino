@@ -2,67 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Sharpduino.Library.Base;
-using Sharpduino.Library.Base.Constants;
-using Sharpduino.Library.Base.Messages.Receive;
-using Sharpduino.Library.Base.Messages.Send;
-using Sharpduino.Library.Base.Messages.TwoWay;
-using Sharpduino.Library.Base.SerialProviders;
+using Sharpduino.Base;
+using Sharpduino.Constants;
+using Sharpduino.EventArguments;
+using Sharpduino.Messages;
+using Sharpduino.Messages.Receive;
+using Sharpduino.Messages.Send;
+using Sharpduino.Messages.TwoWay;
+using Sharpduino.SerialProviders;
 
 namespace Sharpduino
 {
-    public interface IHandleAdvancedMessages :
-        IHandle<AnalogMappingMessage>, IHandle<CapabilityMessage>, IHandle<CapabilitiesFinishedMessage>,
-        IHandle<I2CResponseMessage>, IHandle<PinStateMessage>, IHandle<ProtocolVersionMessage>,
-        IHandle<SysexFirmwareMessage>, IHandle<SysexStringMessage>
-    {}
-
-    public interface IHandleBasicMessages : IHandle<AnalogMessage>, IHandle<DigitalMessage>
-    {}
-
-    public interface IHandleAllMessages : IHandleBasicMessages, IHandleAdvancedMessages
-    {}
-
-    public class PinCapability : CapabilityMessage
-    {}
-
-    public class NewAnalogValueEventArgs : EventArgs
-    {
-        public int NewValue { get; set; }
-        public byte AnalogPin { get; set; }
-    }
-
-    public class NewDigitalValueEventArgs : EventArgs
-    {
-        public int Port { get; set; }
-        public bool[] Pins { get; set; }
-    }
-
-    public class NewStringMessageEventArgs : EventArgs
-    {
-        public string Message { get; set; }
-    }
-
-    public class PinStateEventArgs : EventArgs
-    {
-        public int Value { get; set;}
-        public int Pin { get; set; }
-        public PinModes Mode { get; set; }
-    }
-
-    public class Pin
-    {
-        public PinModes CurrentMode { get; set; }
-        public Dictionary<PinModes, int> Capabilities { get; set; }
-        public int CurrentValue { get; set; }
-
-        public Pin()
-        {
-            Capabilities = new Dictionary<PinModes, int>();
-            CurrentValue = 0;
-        }
-    }
-
     /// <summary>
     /// This is an easy to use master for an board running Standard Firmata 2.3 
     /// (bundled with Arduino 1.0 software)

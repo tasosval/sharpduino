@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Sharpduino.Library.Base.Constants;
-using Sharpduino.Library.Base.Messages.Send;
-using Sharpduino.Library.Base.Messages.TwoWay;
-using Sharpduino.Library.Base.SerialProviders;
+using Sharpduino.Constants;
+using Sharpduino.EventArguments;
 
 namespace Sharpduino.Tests.Consoles
 {

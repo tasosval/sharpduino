@@ -1,57 +1,14 @@
 ﻿using System;
 using System.Linq;
+using Sharpduino.Constants;
 using Sharpduino.Exceptions;
-using Sharpduino.Library.Base.Constants;
-using Sharpduino.Library.Base.Messages.Send;
-using Sharpduino.Library.Base.Messages.TwoWay;
-using Sharpduino.Library.Base.SerialProviders;
+using Sharpduino.Messages;
+using Sharpduino.Messages.Send;
+using Sharpduino.Messages.TwoWay;
+using Sharpduino.SerialProviders;
 
 namespace Sharpduino
 {
-    public enum ArduinoUnoPins
-    {
-        D0_RX = 0,
-        D1_TX,
-        D2,
-        D3_PWM,
-        D4,
-        D5_PWM,
-        D6_PWM,
-        D7,
-        D8,
-        D9_PWM,
-        D10_PWM,
-        D11_PWM,
-        D12,
-        D13,
-        A0,
-        A1,
-        A2,
-        A3,
-        A4,
-        A5
-    }
-
-    public enum ArduinoUnoPWMPins
-    {
-        D3_PWM = 3,
-        D5_PWM = 5,
-        D6_PWM = 6,
-        D9_PWM = 9,
-        D10_PWM = 10,
-        D11_PWM = 11
-    }
-
-    public enum ArduinoUnoAnalogPins
-    {
-        A0 = 0,
-        A1,
-        A2,
-        A3,
-        A4,
-        A5
-    }
-
     public class ArduinoUno : IDisposable
     {
         private readonly EasyFirmata firmata;
