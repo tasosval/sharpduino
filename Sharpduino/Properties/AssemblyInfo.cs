@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Sharpduino")]
+[assembly: AssemblyTitle("Sharpduino.Library.Base")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Sharpduino")]
+[assembly: AssemblyProduct("Sharpduino.Library.Base")]
 [assembly: AssemblyCopyright("Copyright ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0ced2272-fd2e-44d6-88ac-7180c216ce69")]
+[assembly: Guid("fe9a7f34-0fbf-4e77-96b1-6345658d60ae")]
 
 // Version information for an assembly consists of the following four values:
 //

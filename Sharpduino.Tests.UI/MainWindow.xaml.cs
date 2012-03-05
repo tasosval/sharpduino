@@ -13,11 +13,13 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using Sharpduino.Library.Base;
-using Sharpduino.Library.Base.Constants;
-using Sharpduino.Library.Base.Messages.Send;
-using Sharpduino.Library.Base.Messages.TwoWay;
-using Sharpduino.Library.Base.SerialProviders;
+using Sharpduino.Base;
+using Sharpduino.Constants;
+using Sharpduino.EventArguments;
+using Sharpduino.Messages;
+using Sharpduino.Messages.Send;
+using Sharpduino.Messages.TwoWay;
+using Sharpduino.SerialProviders;
 
 namespace Sharpduino.Tests.UI
 {

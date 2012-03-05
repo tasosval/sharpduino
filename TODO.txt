@@ -2,14 +2,3 @@
 //         I2C         //
 -------------------------
 When sending I2C continuous read, we might get a SysexString too many queries
-
--------------------------
-//        Servo        //
--------------------------
-The core idea is to just add a "config" message, then use the SET_PIN_MODE message to attach/detach Servo support to a pin. 
-minPulse, maxPulse, and angle are all 14-bit unsigned integers. Angle is in degrees. The SERVO_CONFIG can be sent at any time to change the settings. 
-
--------------------------
-//  FirmataEmptyBase   //
--------------------------
-ComPort should become ISerialPort <- our implementation

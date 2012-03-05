@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Sharpduino.Library.Base.Constants;
+using Sharpduino.Constants;
 
 namespace Sharpduino.Exceptions
 {
