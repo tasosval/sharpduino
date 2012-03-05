@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Sharpduino.Library.Base.Constants;
 using Sharpduino.Library.Base.Messages.Send;
 using Sharpduino.Library.Base.Messages.TwoWay;
 using Sharpduino.Library.Base.SerialProviders;
@@ -14,44 +15,53 @@ namespace Sharpduino.Tests.Consoles
         private static bool isInitialized = false;
         static void Main(string[] args)
         {
-            ComPortProvider port = new ComPortProvider("COM3");
-            using (var easyFirmata = new EasyFirmata(port))
+//            ComPortProvider port = new ComPortProvider("COM3");
+//            using (var easyFirmata = new EasyFirmata(port))
+//            {
+//                easyFirmata.Initialized += easyFirmata_Initialized;
+//                //easyFirmata.NewAnalogValue += easyFirmata_NewAnalogValue;
+//
+//                while (!isInitialized)
+//                {
+//                    Thread.Sleep(10);
+//                }
+//
+//                for (int i = 0; i < easyFirmata.Pins.Count; i++)
+//                {
+//                    var pin = easyFirmata.Pins[i];
+//                    Console.WriteLine("Pin:{0} Current Mode:{1}", i,pin.CurrentMode);
+//                    foreach (var s in pin.Capabilities)
+//                    {
+//                        Console.WriteLine("\t{0} : {1} Resolution",s.Key,s.Value);
+//                    }
+//                }
+//
+//                #region Servo Test
+//                easyFirmata.SendMessage(new ServoConfigMessage(){Pin = 9});
+//                int val = 90;
+//                ConsoleKey key;
+//                do
+//                {
+//                    key = Console.ReadKey().Key;
+//                    if ( key == ConsoleKey.UpArrow )
+//                        easyFirmata.SendMessage(new AnalogMessage(){Pin = 9,Value = ++val});
+//                    else if ( key == ConsoleKey.DownArrow )
+//                        easyFirmata.SendMessage(new AnalogMessage() { Pin = 9, Value = --val });
+//
+//                    Thread.Sleep(100);
+//
+//                } while (key != ConsoleKey.Enter);
+
+//                #endregion
+//            }
+
+            using (var arduino = new ArduinoUno("COM4"))
             {
-                easyFirmata.Initialized += easyFirmata_Initialized;
-                //easyFirmata.NewAnalogValue += easyFirmata_NewAnalogValue;
+                while (!arduino.IsInitialized) ;
+                arduino.SetPinMode(ArduinoUnoPins.A0, PinModes.Output);
+                arduino.SetDO(ArduinoUnoPins.A0, true);
 
-                while (!isInitialized)
-                {
-                    Thread.Sleep(10);
-                }
-
-                for (int i = 0; i < easyFirmata.Pins.Count; i++)
-                {
-                    var pin = easyFirmata.Pins[i];
-                    Console.WriteLine("Pin:{0} Current Mode:{1}", i,pin.CurrentMode);
-                    foreach (var s in pin.Capabilities)
-                    {
-                        Console.WriteLine("\t{0} : {1} Resolution",s.Key,s.Value);
-                    }
-                }
-
-                #region Servo Test
-                easyFirmata.SendMessage(new ServoConfigMessage(){Pin = 9});
-                int val = 90;
-                ConsoleKey key;
-                do
-                {
-                    key = Console.ReadKey().Key;
-                    if ( key == ConsoleKey.UpArrow )
-                        easyFirmata.SendMessage(new AnalogMessage(){Pin = 9,Value = ++val});
-                    else if ( key == ConsoleKey.DownArrow )
-                        easyFirmata.SendMessage(new AnalogMessage() { Pin = 9, Value = --val });
-
-                    Thread.Sleep(100);
-
-                } while (key != ConsoleKey.Enter);
-                #endregion
-
+                Console.ReadKey();
             }
         }
 

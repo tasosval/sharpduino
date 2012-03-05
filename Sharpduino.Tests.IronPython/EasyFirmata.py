@@ -1,6 +1,8 @@
+#This is for 
+
 # Get the Suitable references
 import sys
-sys.path.append("e:\\projects\\tasos\\sharpduino\\sharpduino-hg\\sharpduino\\bin\\debug")
+sys.path.append("c:\\projects\\sharpduino\\sharpduino\\bin\\debug")
 import clr
 clr.AddReference("Sharpduino")
 clr.AddReference("Sharpduino.Library.Base")
@@ -11,6 +13,7 @@ from Sharpduino.Library.Base import *
 from Sharpduino.Library.Base.SerialProviders import *
 from Sharpduino.Library.Base.Messages.Send import *
 from Sharpduino.Library.Base.Messages.TwoWay import *
+from Sharpduino.Library.Base.Constants import *
 
 #create the serial provider
 port = ComPortProvider("COM3")
