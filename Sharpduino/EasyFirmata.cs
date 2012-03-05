@@ -449,7 +449,8 @@ namespace Sharpduino
             {
                 // Even if we have analog values ie > 1 we put 0 as it doesn't matter
                 // from the board side. They will be ignored anyway
-                values[i] = Pins[port*8 + i].CurrentValue == 1 ? true : false;
+                if ( port * 8 + i < Pins.Count )
+                    values[i] = Pins[port*8 + i].CurrentValue == 1 ? true : false;
             }
 
             return values;

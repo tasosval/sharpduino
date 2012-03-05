@@ -8,7 +8,7 @@ using Sharpduino.Library.Base.SerialProviders;
 
 namespace Sharpduino
 {
-    public enum ArduinoUnoDigitalPins
+    public enum ArduinoUnoPins
     {
         D0_RX = 0,
         D1_TX,
@@ -24,12 +24,12 @@ namespace Sharpduino
         D11_PWM,
         D12,
         D13,
-        A0 = 16,
-        A1 = 17,
-        A2 = 18,
-        A3 = 19,
-        A4 = 20,
-        A5 = 21
+        A0,
+        A1,
+        A2,
+        A3,
+        A4,
+        A5
     }
 
     public enum ArduinoUnoPWMPins
@@ -50,19 +50,6 @@ namespace Sharpduino
         A3,
         A4,
         A5
-    }
-
-    public static class ArduinoUnoConstantsHelper
-    {
-        public static int PinToAnalog(this int pin)
-        {
-            return pin - 16;
-        }
-
-        public static int AnalogToPin(this int analogPin)
-        {
-            return analogPin + 16;
-        }
     }
 
     public class ArduinoUno : IDisposable
@@ -97,7 +84,7 @@ namespace Sharpduino
         /// <param name="maxPulse">The max pulse.</param>
         /// <param name="startAngle">The start angle.</param>
         /// <exception cref="InvalidPinModeException">If the pin doesn't support servo functionality</exception>
-        public void SetServoMode(ArduinoUnoDigitalPins pin, int minPulse, int maxPulse, int startAngle)
+        public void SetServoMode(ArduinoUnoPins pin, int minPulse, int maxPulse, int startAngle)
         {
             if (firmata.IsInitialized == false)
                 return;
@@ -114,7 +101,7 @@ namespace Sharpduino
             currentPin.CurrentValue = startAngle;
         }
 
-        public void SetPinMode(ArduinoUnoDigitalPins pin, PinModes mode)
+        public void SetPinMode(ArduinoUnoPins pin, PinModes mode)
         {
             if ( firmata.IsInitialized == false )
                 return;
@@ -145,7 +132,7 @@ namespace Sharpduino
             firmata.SendMessage(new PinStateQueryMessage(){Pin = (byte) pin});
         }
 
-        public void SetDO(ArduinoUnoDigitalPins pin, bool newValue)
+        public void SetDO(ArduinoUnoPins pin, bool newValue)
         {
             if (firmata.IsInitialized == false)
                 return;
@@ -159,7 +146,7 @@ namespace Sharpduino
             // get the values for the other pins in this port
             var previousValues = firmata.GetDigitalPortValues(port);
             // update the new value for this pin
-            previousValues[(int) pin] = newValue;
+            previousValues[(int) pin % 8] = newValue;
             // Send the message to the board
             firmata.SendMessage(new DigitalMessage(){Port = port, PinStates = previousValues});
             // update the new value to the firmata pins list
@@ -182,7 +169,7 @@ namespace Sharpduino
             firmata.Pins[(int) pin].CurrentValue = newValue;
         }
 
-        public void SetServo(ArduinoUnoDigitalPins pin, int newValue)
+        public void SetServo(ArduinoUnoPins pin, int newValue)
         {
             if (firmata.IsInitialized == false)
                 return;
@@ -205,7 +192,7 @@ namespace Sharpduino
             firmata.SendMessage(new SamplingIntervalMessage(){Interval = milliseconds});
         }
 
-        public Pin GetCurrentPinState(ArduinoUnoDigitalPins pin)
+        public Pin GetCurrentPinState(ArduinoUnoPins pin)
         {
             if (!firmata.IsInitialized)
                 return null;
