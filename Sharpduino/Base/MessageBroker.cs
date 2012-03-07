@@ -1,18 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog;
+using Sharpduino.Logging;
 
 namespace Sharpduino.Base
 {
     public class MessageBroker : IMessageBroker
     {
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private readonly ILogger log;
 
         private readonly Dictionary<Type,List<IHandle>> handlers;
 
         public MessageBroker()
         {
+            log = LogManager.CurrentLogger;
             log.Debug("Initializing messageBroker");
             this.handlers = new Dictionary<Type, List<IHandle>>();
         }
@@ -75,7 +76,7 @@ namespace Sharpduino.Base
                 }
                 catch (InvalidCastException ex)
                 {
-                    log.ErrorException("The handler was not of the right type. This should not have happened at all...",ex);
+                    log.Error("The handler was not of the right type. This should not have happened at all..." + ex.Message);
                     throw;
                 }                
             }
