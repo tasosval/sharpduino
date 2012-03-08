@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Sharpduino.SerialProviders
+namespace Sharpduino.EventArguments
 {
     public class DataReceivedEventArgs : EventArgs
     {

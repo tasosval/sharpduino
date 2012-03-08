@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Sharpduino.Creators;
+using Sharpduino.EventArguments;
 using Sharpduino.Exceptions;
 using Sharpduino.Handlers;
 using Sharpduino.SerialProviders;
