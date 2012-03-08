@@ -11,6 +11,7 @@ using Moq.Protected;
 using Sharpduino.Base;
 using Sharpduino.Constants;
 using Sharpduino.Creators;
+using Sharpduino.EventArguments;
 using Sharpduino.Exceptions;
 using Sharpduino.Handlers;
 using Sharpduino.Messages;
