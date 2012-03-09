@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading;
 using Sharpduino.Constants;
 using Sharpduino.EventArguments;
+using Sharpduino.Messages.Send;
+using Sharpduino.Messages.TwoWay;
+using Sharpduino.SerialProviders;
 
 namespace Sharpduino.Tests.Consoles
 {
@@ -13,28 +16,27 @@ namespace Sharpduino.Tests.Consoles
         private static bool isInitialized = false;
         static void Main(string[] args)
         {
-//            ComPortProvider port = new ComPortProvider("COM3");
-//            using (var easyFirmata = new EasyFirmata(port))
-//            {
-//                easyFirmata.Initialized += easyFirmata_Initialized;
-//                //easyFirmata.NewAnalogValue += easyFirmata_NewAnalogValue;
-//
-//                while (!isInitialized)
-//                {
-//                    Thread.Sleep(10);
-//                }
-//
-//                for (int i = 0; i < easyFirmata.Pins.Count; i++)
-//                {
-//                    var pin = easyFirmata.Pins[i];
-//                    Console.WriteLine("Pin:{0} Current Mode:{1}", i,pin.CurrentMode);
-//                    foreach (var s in pin.Capabilities)
-//                    {
-//                        Console.WriteLine("\t{0} : {1} Resolution",s.Key,s.Value);
-//                    }
-//                }
-//
-//                #region Servo Test
+            ComPortProvider port = new ComPortProvider("COM6");
+            using (var easyFirmata = new EasyFirmata(port))
+            {
+                //easyFirmata.Initialized += easyFirmata_Initialized;
+                //easyFirmata.NewAnalogValue += easyFirmata_NewAnalogValue;
+
+                while (!easyFirmata.IsInitialized) ;
+
+                for (int i = 0; i < easyFirmata.Pins.Count; i++)
+                {
+                    var pin = easyFirmata.Pins[i];
+                    Console.WriteLine("Pin:{0} Current Mode:{1}", i,pin.CurrentMode);
+                    foreach (var s in pin.Capabilities)
+                    {
+                        Console.WriteLine("\t{0} : {1} Resolution",s.Key,s.Value);
+                    }
+                }
+                Console.ReadKey();
+
+                #region Servo Test
+
 //                easyFirmata.SendMessage(new ServoConfigMessage(){Pin = 9});
 //                int val = 90;
 //                ConsoleKey key;
@@ -50,17 +52,24 @@ namespace Sharpduino.Tests.Consoles
 //
 //                } while (key != ConsoleKey.Enter);
 
-//                #endregion
-//            }
-
-            using (var arduino = new ArduinoUno("COM4"))
-            {
-                while (!arduino.IsInitialized) ;
-                arduino.SetPinMode(ArduinoUnoPins.A0, PinModes.Output);
-                arduino.SetDO(ArduinoUnoPins.A0, true);
-
-                Console.ReadKey();
+                #endregion
             }
+
+//            using (var arduino = new ArduinoUno("COM4"))
+//            {
+//                while (!arduino.IsInitialized) ;
+//                arduino.SetPinMode(ArduinoUnoPins.A0, PinModes.Output);
+//                arduino.SetDO(ArduinoUnoPins.A0, true);
+//
+//                Console.ReadKey();
+//            }
+//
+//            using (var ardMega = new ArduinoMega("COM6"))
+//            {
+//                while (!ardMega.IsInitialized) ;
+//                while (!ardMega.IsInitialized) ;
+//                int a = 5;
+//            }
         }
 
         static void easyFirmata_NewAnalogValue(object sender, NewAnalogValueEventArgs e)
