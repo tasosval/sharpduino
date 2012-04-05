@@ -68,6 +68,7 @@
     <Compile Include="Creators\ToggleAnalogReportMessageCreator.cs" />
     <Compile Include="Creators\ToggleDigitalReportMessageCreator.cs" />
     <Compile Include="EasyFirmata.cs" />
+    <Compile Include="EventArguments\NewI2CMessageEventArgs.cs" />
     <Compile Include="Exceptions\FirmataException.cs" />
     <Compile Include="Exceptions\InvalidFirmataMessageException.cs" />
     <Compile Include="Exceptions\InvalidPinModeException.cs" />
