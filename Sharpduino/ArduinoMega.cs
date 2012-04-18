@@ -165,6 +165,17 @@ namespace Sharpduino
             return firmata.AnalogPins[(int)pin].CurrentValue;
         }
 
+        public int ReadDigital(ArduinoMegaPins pin)
+        {
+            if (firmata.IsInitialized == false)
+                return -1;
+
+            if (firmata.Pins[(int)pin].CurrentMode != PinModes.Input)
+                return -1;
+
+            return firmata.Pins[(int)pin].CurrentValue;
+        }
+
 
         public void Dispose()
         {
